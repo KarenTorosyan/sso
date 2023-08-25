@@ -23,7 +23,7 @@ services:
       - sso-net
     secrets:
       - source: mongo-secret
-        target: /run/secrets/mongo-mongo-secret.txt
+        target: /run/secrets/mongo-secret.txt
     env_file:
       - docker/mongo/properties.env
     ports:
