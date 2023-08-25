@@ -1,0 +1,141 @@
+server:
+  port: 9000
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        name: sso-session
+        max-age: 3d
+        same-site: lax
+        http-only: true
+        secure: true
+
+db:
+  selected: mongo
+
+files:
+  images:
+    supported-extensions:
+      - .jpg
+      - .jpeg
+      - .png
+      - .svg
+      - .gif
+
+spring:
+  main:
+    banner-mode: off
+    web-application-type: servlet
+  web:
+    resources:
+      static-locations: ${STATIC_LOCATIONS}
+  security:
+    oauth2:
+      authorization-server:
+        client:
+          public:
+            registration:
+              client-id: ${SSO_SERVER_CLIENT_ID}
+              client-authentication-methods: ${SSO_SERVER_CLIENT_AUTHENTICATION_METHODS}
+              authorization-grant-types: ${SSO_SERVER_AUTHORIZATION_GRANT_TYPE}
+              redirect-uris: ${SSO_SERVER_REDIRECT_URIS}
+              post-logout-redirect-uris: ${SSO_SERVER_POST_LOGOUT_REDIRECT_URIS}
+              scopes: ${SSO_SERVER_SCOPES}
+            require-proof-key: ${SSO_SERVER_REQUIRE_PROOF_KEY}
+            require-authorization-consent: ${SSO_SERVER_REQUIRE_AUTHORIZATION_CONSENT}
+            token:
+              authorization-code-time-to-live: 5m
+              access-token-time-to-live: 5m
+      client:
+        provider:
+          google:
+            # Google OpenID configuration: https://accounts.google.com/.well-known/openid-configuration
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?prompt=select_account&access_type=offline
+            token-uri: https://oauth2.googleapis.com/token
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            user-name-attribute: email
+          azure:
+            # Microsoft Azure OpenID configuration: https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration
+            authorization-uri: https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize
+            token-uri: https://login.microsoftonline.com/consumers/oauth2/v2.0/token
+            jwk-set-uri: https://login.microsoftonline.com/consumers/discovery/v2.0/keys
+            user-info-uri: https://graph.microsoft.com/oidc/userinfo
+            user-name-attribute: email
+          facebook:
+            # Facebook OpenID configuration: https://www.facebook.com/.well-known/openid-configuration
+            authorization-uri: https://facebook.com/dialog/oauth
+            jwk-set-uri: https://www.facebook.com/.well-known/oauth/openid/jwks
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,first_name,last_name,email,birthday,gender,link,picture.width(500).height(500)
+            user-name-attribute: email
+        registration:
+          google_authorization_code_flow:
+            provider: google
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/google'
+            scope:
+              - openid
+              - email
+              - profile
+          azure_authorization_code_flow:
+            provider: azure
+            client-id: ${AZURE_CLIENT_ID}
+            client-secret: ${AZURE_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/azure'
+            scope:
+              - openid
+              - email
+              - profile
+              - offline_access
+          facebook_implicit_flow:
+            provider: facebook
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            redirect-uri: '{baseUrl}/login/oauth2/code/facebook'
+            scope:
+              - public_profile
+              - email
+
+  messages:
+    basename: ${LOCALE_RESOURCE_BUNDLES_BASENAME}
+    use-code-as-default-message: true
+
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_REPLICA_SET}/${MONGO_DATABASE}?authSource=${MONGO_AUTH_SOURCE}
+      auto-index-creation: true
+
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 20
+
+  servlet:
+    multipart:
+      location: ${UPLOADS_LOCATION}
+      max-request-size: ${UPLOADS_MAX_SIZE}
+
+  mail:
+    host: ${SMTP_HOST}
+    port: 587
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    test-connection: true
+    properties:
+      mail.smtp:
+        starttls.enable: true
+        auth: true
+
+springdoc:
+  swagger-ui:
+    oauth:
+      client-id: public
+      use-pkce-with-authorization-code-grant: true
+      scopes: openid, profile, email
+    csrf:
+      enabled: true
+      cookie-name: XSRF-TOKEN
+      header-name: X-XSRF-TOKEN

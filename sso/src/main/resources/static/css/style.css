@@ -1,0 +1,306 @@
+* {
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+*, *:before, *:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+:focus, :active {
+    outline: none;
+}
+
+a:focus, a:active {
+    outline: none;
+}
+
+nav, footer, header, aside {
+    display: block;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    line-height: 1;
+    font-size: 14px;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+input, button, textarea {
+    font-family: inherit;
+}
+
+input::-ms-clear {
+    display: none;
+}
+
+button {
+    cursor: pointer;
+}
+
+button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+
+a, a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+ul li {
+    list-style: none;
+}
+
+img {
+    vertical-align: top;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: 400;
+}
+
+.container {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.container-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.login-section-body, .register-section-body, .auth-consent-section-body {
+    width: 300px;
+    border: 1px solid gray;
+    border-radius: 2px;
+    padding: 20px;
+}
+
+.login-section-title, .register-section-title, .auth-consent-section-title {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 18px;
+    color: #3c45af;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    outline: none;
+    border: 1px solid black;
+    border-radius: 2px;
+    font-size: 16px;
+}
+
+.form-input-checkbox {
+    margin-left: 0;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.form-label-checkbox {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.form-row {
+    margin-bottom: 10px;
+}
+
+.form-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-actions-row .action {
+    margin-right: 10px;
+}
+
+.action {
+    width: 100%;
+    padding: 10px;
+    background-color: black;
+    color: white;
+    border: 1px solid black;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.form-row-cols {
+    display: flex;
+}
+
+.form-row-col {
+    flex-grow: 1;
+}
+
+.form-row-col:not(:last-child) {
+    margin-right: 10px;
+}
+
+.form-title {
+    padding: 0 0 10px 0;
+    font-size: 18px;
+    color: cornflowerblue;
+}
+
+.form-input-file {
+    width: 100%;
+    padding: 10px;
+    outline: none;
+    border: 1px solid black;
+    border-radius: 2px;
+}
+
+.form-label.required:after {
+    content:" *";
+    color: red;
+}
+
+.error-text {
+    color: red;
+}
+
+.success-text {
+    color: green;
+}
+
+.error {
+    padding: 6px 0;
+}
+
+.login-error-text, .login-success-text {
+    font-size: 16px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.openid-provider {
+    margin-bottom: 10px;
+    display: block;
+    text-decoration: none;
+    padding: 10px;
+    background-color: #3c45af;
+    color: white;
+    border: 1px solid #3c45af;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.openid-provider:hover {
+    text-decoration: underline;
+}
+
+.other-links {
+    text-align: center;
+}
+
+.login-register-link {
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    color: black;
+}
+
+.login-register-link:hover {
+    text-decoration: underline;
+}
+
+.auth-consent-form-input {
+    padding: 10px;
+}
+
+.auth-consent-section-description {
+    margin-bottom: 10px;
+}
+
+.auth-consent-section-info {
+}
+
+.text-bold-600 {
+    font-weight: 600;
+}
+
+.text-blue {
+    color: blue;
+}
+
+.text-black {
+    color: black;
+}
+
+.table {
+    width: 100%;
+    border-spacing: 0;
+}
+
+.table-row {
+}
+
+.table-title-row {
+    background-color: black;
+}
+
+.table-title {
+    color: white;
+    padding: 10px;
+    text-align: start;
+}
+
+.table-title:not(:last-child) {
+    border-right: 1px solid black;
+}
+
+.table-data {
+    padding: 10px;
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+}
+
+.table-data:first-child {
+    border-left: 1px solid black;
+}
+
+@media screen and (max-width: 858px){
+    .form-row-cols {
+        flex-direction: column;
+    }
+    .form-row-col:not(:first-child) {
+        margin: 0 0 10px 0;
+    }
+    .form-row-col {
+        margin-bottom: 10px;
+    }
+    .action {
+        background-color: black;
+        color: white;
+    }
+}
+

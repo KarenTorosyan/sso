@@ -1,0 +1,39 @@
+version: '3.9'
+
+networks:
+  sso-net:
+    name: sso-net
+    driver: overlay
+    external: true
+
+secrets:
+  mongo-secret:
+    name: mongo-secret
+    file: docker/mongo/secret.txt
+
+services:
+  mongo-1:
+    image: mongo:7.0-rc-jammy
+    volumes:
+      - type: bind
+        source: ./docker/mongo/keyfile.txt
+        target: /run/secrets/mongo-keyfile.txt
+        read_only: true
+    networks:
+      - sso-net
+    secrets:
+      - source: mongo-secret
+        target: /run/secrets/mongo-mongo-secret.txt
+    env_file:
+      - docker/mongo/properties.env
+    ports:
+      - '27017'
+    command: |-
+      mongod --replSet shard-1
+      --keyFile /run/secrets/mongo-keyfile.txt
+    deploy:
+      replicas: 3
+      placement:
+        max_replicas_per_node: 3
+      restart_policy:
+        condition: any

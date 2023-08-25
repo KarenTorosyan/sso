@@ -1,0 +1,71 @@
+version: '3.9'
+
+networks:
+  sso-net:
+    name: sso-net
+    driver: overlay
+    external: true
+
+configs:
+  sso-config-initial:
+    name: sso-config
+    file: sso/src/main/resources/application.yml
+
+secrets:
+  sso-mongo-secret:
+    name: sso-mongo-secret
+    file: docker/sso/mongo-secret.txt
+  sso-smtp-mail-outlook-secret:
+    name: sso-smtp-mail-outlook-secret
+    file: docker/sso/smtp-mail-outlook-secret.txt
+  sso-client-google-secret:
+    name: sso-client-google-secret
+    file: docker/sso/client-google-secret.txt
+  sso-client-azure-secret:
+    name: sso-client-azure-secret
+    file: docker/sso/client-azure-secret.txt
+  sso-client-facebook-secret:
+    name: sso-client-facebook-secret
+    file: docker/sso/client-facebook-secret.txt
+
+services:
+  sso:
+    image: sso:1.0
+    networks:
+      - sso-net
+    configs:
+      - source: sso-config-initial
+        target: /etc/sso/application.yml
+    env_file:
+      - docker/sso/application.env
+    secrets:
+      - source: sso-mongo-secret
+        target: /run/secrets/mongo-secret.txt
+      - source: sso-smtp-mail-outlook-secret
+        target: /run/secrets/smtp-mail-outlook-secret.txt
+      - source: sso-client-google-secret
+        target: /run/secrets/client-google-secret.txt
+      - source: sso-client-azure-secret
+        target: /run/secrets/client-azure-secret.txt
+      - source: sso-client-facebook-secret
+        target: /run/secrets/client-facebook-secret.txt
+    ports:
+      - '443:9000'
+    volumes:
+      - type: bind
+        source: ./docker/sso/locales
+        target: /var/sso/static/locales
+      - type: bind
+        source: ./docker/certbot/etc/letsencrypt
+        target: /etc/letsencrypt
+        read_only: true
+    deploy:
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: any
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    dns_search: smtp-mail.outlook.com

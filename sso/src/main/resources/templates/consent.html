@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta th:replace="~{fragments/meta}">
+    <title th:text="#{consent}">Consent</title>
+    <link rel="stylesheet" href="../static/css/style.css" th:href="@{'/css/style.css'}">
+</head>
+<body>
+<main class="main">
+    <section class="auth-consent-section">
+        <div class="container">
+            <div class="container-center">
+                <div class="auth-consent-section-body">
+                    <p class="auth-consent-section-title" th:utext="#{authorization_consent_title.html(${clientId}, ${principalName})}">
+                        The application <span class="text-bold-600 text-blue">{clientId}</span> wants to access your account <span class="text-bold-600 text-black">{username}</span>
+                    </p>
+                    <p class="auth-consent-section-description" th:utext="#{authorization_consent_description.html}">
+                        The following permissions are requested by the above app.<br/>Please review these and consent if you approve. </p>
+                    <form class="form auth-consent-form" name="authConsentForm" method="post" action="#" th:action="@{'/oauth2/authorize'}">
+                        <div class="form-row auth-consent-form-row" hidden>
+                            <input class="form-input auth-consent-form-input" id="clientId" name="client_id" th:value="${clientId}">
+                            <label class="form-label auth-consent-form-label" for="clientId"></label>
+                        </div>
+                        <div class="form-row auth-consent-form-row" hidden>
+                            <input class="form-input auth-consent-form-input" id="state" name="state" th:value="${state}">
+                            <label class="form-label auth-consent-form-label" for="state"></label>
+                        </div>
+                        <div class="form-row auth-consent-form-row" th:each="scope: ${scopes}">
+                            <input class="form-input-checkbox auth-consent-form-input-checkbox" th:id="${scope}" name="scope" th:value="${scope}" type="checkbox" checked>
+                            <label class="form-label-checkbox auth-consent-form-label-checkbox" th:for="${scope}" th:text="${scope}">{scope}</label>
+                        </div>
+                        <div class="form-row form-actions-row auth-consent-form-row auth-consent-form-actions-row">
+                            <button class="action auth-consent-form-action auth-consent-form-action-submit">
+                                <span class="form-action-text auth-consent-form-action-text auth-consent-form-action-submit-text" th:text="#{permit}">Permit</span>
+                            </button>
+                            <button class="action auth-consent-form-action auth-consent-form-action-cancel" onclick="cancelConsent()">
+                                <span class="form-action-text auth-consent-form-action-text auth-consent-form-action-cancel-text" th:text="#{cancel}">Cancel</span>
+                            </button>
+                        </div>
+                    </form>
+                    <p class="auth-consent-section-info" th:utext="#{authorization_consent_info.html}">
+                        <small>Your consent to provide access is required.<br/>If you do not approve, click Cancel, in which case no information will be shared with the app.</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+    function cancelConsent() {
+        document.authConsentForm.reset();
+        document.authConsentForm.submit();
+    }
+</script>
+</body>
+</html>

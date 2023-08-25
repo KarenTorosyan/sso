@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta th:replace="~{fragments/meta}">
+    <title th:text="#{register}">Register</title>
+    <link rel="stylesheet" href="../static/css/style.css" th:href="@{'/css/style.css'}">
+</head>
+<body>
+<main class="main">
+    <section class="register-section">
+        <div class="container">
+            <div class="container-center">
+                <div class="register-section-body">
+                    <p class="register-section-title" th:text="#{registration}">Registration</p>
+                    <p class="register-section-title" th:if="${registerAsAdminText != null}" th:text="#{register_as_admin}">You are the first user, register as administrator!</p>
+                    <form class="form register-form" name="registerForm">
+                        <div class="form-row register-form-row">
+                            <label class="form-label register-form-label" for="name" th:text="#{name}">Name</label>
+                            <input class="form-input register-form-input" id="name" name="name" type="text" th:placeholder="John">
+                        </div>
+                        <div class="form-row register-form-row">
+                            <label class="form-label register-form-label" for="familyName" th:text="#{family_name}">Family Name</label>
+                            <input class="form-input register-form-input" id="familyName" name="familyName" type="text" th:placeholder="Doe">
+                        </div>
+                        <div class="form-row register-form-row">
+                            <label class="form-label required register-form-label" for="email" th:text="#{email}">Email</label>
+                            <input class="form-input register-form-input" id="email" name="email" type="text" th:placeholder="'john.doe@email.com'">
+                        </div>
+                        <div class="form-row register-form-row">
+                            <label class="form-label required register-form-label" for="password" th:text="#{password}">Password</label>
+                            <input class="form-input register-form-input" id="password" name="password" type="password">
+                        </div>
+                        <div class="form-row register-form-row">
+                            <label class="form-label required register-form-label" for="passwordConfirm" th:text="#{confirm_password}">Confirm Password</label>
+                            <input class="form-input register-form-input" id="passwordConfirm" name="passwordConfirm" type="password">
+                        </div>
+                        <div class="form-row register-form-row">
+                            <label class="form-label register-form-label" for="picture" th:text="#{choose_picture}">Choose Picture</label>
+                            <input class="form-input register-form-input" id="picture" name="picture" type="file" accept="image/*">
+                        </div>
+                        <div class="form-row" id="registerFormErrors" hidden></div>
+                        <div class="form-row register-form-row">
+                            <button class="action register-form-action register-form-action-submit" id="registerFormSubmit" th:text="#{register}">Register</button>
+                        </div>
+                    </form>
+                    <div class="login-openid" th:if="${registerAsAdminText == null}">
+                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/google_authorization_code_flow'}">Google</a>
+                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/azure_authorization_code_flow'}">Azure</a>
+                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/facebook_implicit_flow'}">Facebook</a>
+                    </div>
+                    <div class="other-links" th:if="${registerAsAdminText == null}">
+                        <a class="login-register-link" href="login.html" th:href="@{'/login'}" th:text="#{login}">Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="../static/js/common.js" th:src="@{'/js/common.js'}"></script>
+<script>
+    const registerForm = document.registerForm;
+    registerForm.addEventListener("submit", event => {
+        event.preventDefault()
+        const formData = new FormData(registerForm);
+        const multipartFormData = new FormData();
+        multipartFormData.append("user", createUserJson(formData));
+        const picture = getPicture();
+        if (picture) {
+            multipartFormData.append("picture", picture)
+        }
+        createUser(multipartFormData);
+    });
+
+    function createUser(multipartFormData) {
+        new Promise((resolve, reject) => {
+            fetch(`${baseUrl}/users/multipart`, {
+                method: "post",
+                body: multipartFormData,
+                headers: withCsrfToken(new Headers())
+            }).then(response => {
+                response.status === 201 ? resolve() : response.json().then(error => reject(error));
+            }).catch(error => new Error(`Error on create user : ${error.message}`));
+        }).then(() => {
+            window.location.href = `${baseUrl}/login?registered`;
+        }, error => {
+            renderErrors(document.querySelector("#registerFormErrors"), error)
+        });
+    }
+
+    function createUserJson(formData) {
+        const user = {}
+        for (let [key, value] of formData.entries()) {
+            if (key !== "picture") {
+                user[key] = value;
+            }
+        }
+        return new Blob([JSON.stringify(user)], {type: "application/json"})
+    }
+
+    function getPicture() {
+        const picture = document.querySelector("#picture")
+        if (picture) {
+            return picture.files[0];
+        }
+        return null;
+    }
+</script>
+</body>
+</html>
