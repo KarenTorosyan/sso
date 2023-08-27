@@ -22,6 +22,8 @@ rs.initiate({ _id: 'shard-1', members: [
 
 ### Generate Certificates
 
+mkdir -p ./docker/certbot/etc/letsencrypt
+
 sudo docker compose up certbot
 
 ### Build SSO Server
