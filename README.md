@@ -10,7 +10,7 @@ sudo chown 999:999 docker/mongo/keyfile.txt && sudo chmod 400 docker/mongo/keyfi
 
 sudo docker stack deploy -c mongo.yml mongo
 
-sudo docker exec -i -t mongo_mongo-1.1.{id}
+sudo docker exec -i -t mongo_mongo-1.1.{id} /bin/bash
 
 mongosh mongodb://{username}:{password}@localhost:27017/admin?authSource=admin
 
