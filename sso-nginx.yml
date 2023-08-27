@@ -6,6 +6,11 @@ networks:
     driver: overlay
     external: true
 
+volumes:
+  sso-volume:
+    name: sso-volume
+    external: true
+
 configs:
   nginx-config:
     name: nginx-config
@@ -71,6 +76,7 @@ services:
     ports:
       - '9000'
     volumes:
+      - sso-volume:/var/sso/static
       - type: bind
         source: ./docker/sso/locales
         target: /var/sso/static/locales

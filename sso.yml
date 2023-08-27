@@ -6,6 +6,11 @@ networks:
     driver: overlay
     external: true
 
+volumes:
+  sso-volume:
+    name: sso-volume
+    external: true
+
 configs:
   sso-config-initial:
     name: sso-config
@@ -52,6 +57,7 @@ services:
     ports:
       - '443:9000'
     volumes:
+      - sso-volume:/var/sso/static
       - type: bind
         source: ./docker/sso/locales
         target: /var/sso/static/locales

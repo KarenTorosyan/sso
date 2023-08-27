@@ -1,9 +1,15 @@
 ## SSO Authorization Server
 
 ### Create Network
+
 sudo docker network create --driver overlay sso-net
 
+### Create Volumes
+
+sudo docker volume create sso-volume
+
 ### Configure Mongo Cluster
+
 requirement: 1 shard with 3 replicas without router and config servers
 
 sudo chown 999:999 docker/mongo/keyfile.txt && sudo chmod 400 docker/mongo/keyfile.txt
