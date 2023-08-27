@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -70,9 +71,9 @@ public class ErrorsHandlerRest {
         return new ResponseEntity<>(new ErrorResponse(reason), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException.class)
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<ErrorResponse> handleSizeLimitExceededException() {
-        int megabytes = Math.toIntExact(multipartProperties.getMaxRequestSize().toMegabytes());
+        int megabytes = Math.toIntExact(multipartProperties.getMaxFileSize().toMegabytes());
         FileSizeLimitExceededException e = Errors.fileSizeLimitExceeded(megabytes);
         return new ResponseEntity<>(new ErrorResponse(localize(e)), HttpStatus.BAD_REQUEST);
     }

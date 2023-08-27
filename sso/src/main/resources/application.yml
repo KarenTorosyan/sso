@@ -116,7 +116,7 @@ spring:
   servlet:
     multipart:
       location: ${UPLOADS_LOCATION}
-      max-request-size: ${UPLOADS_MAX_SIZE}
+      max-file-size: ${UPLOADS_MAX_SIZE}
 
   mail:
     host: ${SMTP_HOST}
