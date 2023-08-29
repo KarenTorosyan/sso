@@ -30,6 +30,9 @@ rs.initiate({ _id: 'shard-1', members: [
 
 mkdir -p ./docker/certbot/etc/letsencrypt
 
+>   **Important** 
+>  override  domain
+
 sudo docker compose up certbot
 
 ### Build SSO Server
@@ -38,24 +41,26 @@ sudo docker build --file Dockerfile --tag sso:1.0 .
 
 ### Start SSO Server
 
-sudo docker stack deploy -c sso.yml sso
+>   **Important**
+>  override  domain and certificate
 
-https://ssoserver.duckdns.org/register
+sudo docker stack deploy -c sso.yml sso
 
 ### Start SSO Server with NGINX Reverse Proxy
 
-sudo docker stack deploy -c sso-nginx.yml sso-nginx
+>   **Important**
+>  override  domain  and  certificate
 
-https://ssoserver.duckdns.org/register
+sudo docker stack deploy -c sso-nginx.yml sso-nginx
 
 ### SSO Server API Documentation
 
-https://ssoserver.duckdns.org/swagger-ui/index.html
+    /swagger-ui/index.html
 
 ### Renew Certificates
 
-sudo docker service scale {sso_service}=0
+sudo docker service scale {server_running_on_443_port}=0
 
 sudo docker compose up certbot-renew
 
-sudo docker service scale {sso_service}={expected_replica_count}
+sudo docker service scale {server_running_on_443_port}={expected_replica_count}
