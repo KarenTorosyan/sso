@@ -35,17 +35,17 @@ spring:
         client:
           public:
             registration:
-              client-id: ${SSO_SERVER_CLIENT_ID}
-              client-authentication-methods: ${SSO_SERVER_CLIENT_AUTHENTICATION_METHODS}
-              authorization-grant-types: ${SSO_SERVER_AUTHORIZATION_GRANT_TYPE}
-              redirect-uris: ${SSO_SERVER_REDIRECT_URIS}
-              post-logout-redirect-uris: ${SSO_SERVER_POST_LOGOUT_REDIRECT_URIS}
-              scopes: ${SSO_SERVER_SCOPES}
-            require-proof-key: ${SSO_SERVER_REQUIRE_PROOF_KEY}
-            require-authorization-consent: ${SSO_SERVER_REQUIRE_AUTHORIZATION_CONSENT}
+              client-id: ${PUBLIC_SSO_SERVER_CLIENT_ID}
+              client-authentication-methods: ${PUBLIC_SSO_SERVER_CLIENT_AUTHENTICATION_METHODS}
+              authorization-grant-types: ${PUBLIC_SSO_SERVER_AUTHORIZATION_GRANT_TYPE}
+              redirect-uris: ${PUBLIC_SSO_SERVER_REDIRECT_URIS}
+              post-logout-redirect-uris: ${PUBLIC_SSO_SERVER_POST_LOGOUT_REDIRECT_URIS}
+              scopes: ${PUBLIC_SSO_SERVER_SCOPES}
+            require-proof-key: ${PUBLIC_SSO_SERVER_REQUIRE_PROOF_KEY}
+            require-authorization-consent: ${PUBLIC_SSO_SERVER_REQUIRE_AUTHORIZATION_CONSENT}
             token:
-              authorization-code-time-to-live: 5m
-              access-token-time-to-live: 5m
+              authorization-code-time-to-live: ${PUBLIC_SSO_SERVER_AUTHORIZATION_CODE_TIME_TO_LIVE}
+              access-token-time-to-live: ${PUBLIC_SSO_SERVER_ACCESS_TOKEN_TIME_TO_LIVE}
       client:
         provider:
           google:
