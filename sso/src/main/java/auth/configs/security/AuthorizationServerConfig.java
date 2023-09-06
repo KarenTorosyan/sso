@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -70,9 +71,13 @@ public class AuthorizationServerConfig {
             List<String> authorities = userService.getAuthorities(user.getId(), Pageable.unpaged())
                     .map(userAuthority -> userAuthority.getAuthority().getName())
                     .getContent();
-            return OAuth2TokenClaimsSet.builder()
-                    .claim(AccessTokenClaims.AUTHORITIES, authorities)
-                    .build().getClaims();
+            OAuth2TokenClaimsSet.Builder builder = OAuth2TokenClaimsSet.builder()
+                    .claim(AccessTokenClaims.AUTHORITIES, authorities);
+            if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
+                builder.claim(StandardClaimNames.EMAIL, user.getEmail().getAddress());
+                builder.claim(StandardClaimNames.EMAIL_VERIFIED, user.getEmail().isVerified());
+            }
+            return builder.build().getClaims();
         };
     }
 
@@ -84,17 +89,17 @@ public class AuthorizationServerConfig {
             OidcUserInfo.Builder builder = OidcUserInfo.builder()
                     .subject(user.getEmail().getAddress());
 
-            if (context.getAuthorizedScopes().contains(Scopes.PROFILE)) {
+            if (context.getAuthorizedScopes().contains(StandardClaimNames.PROFILE)) {
                 builder.givenName(user.getName())
                         .familyName(user.getFamilyName())
                         .name(user.getName() + " " + user.getFamilyName())
                         .preferredUsername(user.getEmail().getAddress())
                         .picture(user.getPicture() != null ? user.getPicture().getUrl() : null)
-                        .profile(jwtClaimsSet.getIssuer().toString() + Endpoints.PROFILE)
+                        .profile(jwtClaimsSet.getIssuer().toString() + StandardClaimNames.PROFILE)
                         .locale(LocaleContextHolder.getLocale().toString())
                         .zoneinfo(ZoneId.systemDefault().getId());
             }
-            if (context.getAuthorizedScopes().contains(Scopes.EMAIL)) {
+            if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
                 builder.email(user.getEmail().getAddress())
                         .emailVerified(user.getEmail().isVerified());
             }
