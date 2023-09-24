@@ -3,6 +3,7 @@ package auth.configs.security;
 import auth.Endpoints;
 import auth.entities.user.User;
 import auth.entities.user.UserService;
+import auth.utils.Claims;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -27,6 +28,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class AuthorizationServerConfig {
@@ -51,59 +53,54 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer(AccessTokenClaims accessTokenClaims,
-                                                            IdTokenClaims idTokenClaims) {
+    OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer(UserService userService) {
         return context -> {
+            JwtClaimsSet claims = context.getClaims().build();
+            User user = userService.getByEmail(claims.getSubject());
+            context.getClaims().subject(user.getId());
+
             if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
-                context.getClaims().claims(c -> c.putAll(accessTokenClaims.getClaims(context)));
+                List<String> authorities = userService.getAuthorities(user.getId(), Pageable.unpaged())
+                        .map(userAuthority -> userAuthority.getAuthority().getName())
+                        .getContent();
+                context.getClaims().claims(c -> c.putAll(customizeAccessToken(context, user, authorities)));
 
             } else if (context.getTokenType().getValue().equals(OidcParameterNames.ID_TOKEN)) {
-                context.getClaims().claims(c -> c.putAll(idTokenClaims.getClaims(context)));
+                context.getClaims().claims(c -> c.putAll(customizeIdToken(context, user)));
             }
         };
     }
 
-    @Bean
-    AccessTokenClaims accessTokenClaims(UserService userService) {
-        return context -> {
-            JwtClaimsSet jwtClaimsSet = context.getClaims().build();
-            User user = userService.getByEmail(jwtClaimsSet.getSubject());
-            List<String> authorities = userService.getAuthorities(user.getId(), Pageable.unpaged())
-                    .map(userAuthority -> userAuthority.getAuthority().getName())
-                    .getContent();
-            OAuth2TokenClaimsSet.Builder builder = OAuth2TokenClaimsSet.builder()
-                    .claim(AccessTokenClaims.AUTHORITIES, authorities);
-            if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
-                builder.claim(StandardClaimNames.EMAIL, user.getEmail().getAddress());
-                builder.claim(StandardClaimNames.EMAIL_VERIFIED, user.getEmail().isVerified());
-            }
-            return builder.build().getClaims();
-        };
+    private Map<String, Object> customizeIdToken(JwtEncodingContext context, User user) {
+        JwtClaimsSet jwtClaimsSet = context.getClaims().build();
+        OidcUserInfo.Builder builder = OidcUserInfo.builder();
+
+        if (context.getAuthorizedScopes().contains(StandardClaimNames.PROFILE)) {
+            builder.givenName(user.getName())
+                    .familyName(user.getFamilyName())
+                    .name(user.getName() + " " + user.getFamilyName())
+                    .preferredUsername(user.getEmail().getAddress())
+                    .picture(user.getPicture() != null ? user.getPicture().getUrl() : null)
+                    .profile(jwtClaimsSet.getIssuer().toString() + Endpoints.PROFILE)
+                    .locale(LocaleContextHolder.getLocale().toString())
+                    .zoneinfo(ZoneId.systemDefault().getId());
+        }
+        if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
+            builder.email(user.getEmail().getAddress())
+                    .emailVerified(user.getEmail().isVerified());
+        }
+        return builder.build().getClaims();
     }
 
-    @Bean
-    IdTokenClaims idTokenClaims(UserService userService) {
-        return context -> {
-            JwtClaimsSet jwtClaimsSet = context.getClaims().build();
-            User user = userService.getByEmail(jwtClaimsSet.getSubject());
-            OidcUserInfo.Builder builder = OidcUserInfo.builder()
-                    .subject(user.getEmail().getAddress());
-
-            if (context.getAuthorizedScopes().contains(StandardClaimNames.PROFILE)) {
-                builder.givenName(user.getName())
-                        .familyName(user.getFamilyName())
-                        .name(user.getName() + " " + user.getFamilyName())
-                        .preferredUsername(user.getEmail().getAddress())
-                        .picture(user.getPicture() != null ? user.getPicture().getUrl() : null)
-                        .profile(jwtClaimsSet.getIssuer().toString() + StandardClaimNames.PROFILE)
-                        .locale(LocaleContextHolder.getLocale().toString())
-                        .zoneinfo(ZoneId.systemDefault().getId());
-            }
-            if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
-                builder.email(user.getEmail().getAddress())
-                        .emailVerified(user.getEmail().isVerified());
-            }
-            return builder.build().getClaims();
-        };
+    private Map<String, Object> customizeAccessToken(JwtEncodingContext context,
+                                                     User user, List<String> authorities) {
+        OAuth2TokenClaimsSet.Builder builder = OAuth2TokenClaimsSet.builder()
+                .claim(Claims.AUTHORITIES, authorities);
+        if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
+            builder.claim(StandardClaimNames.EMAIL, user.getEmail().getAddress());
+            builder.claim(StandardClaimNames.EMAIL_VERIFIED, user.getEmail().isVerified());
+        }
+        return builder.build().getClaims();
     }
+
 }

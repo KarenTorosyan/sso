@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: 9001
   forward-headers-strategy: framework
   servlet:
     session:
