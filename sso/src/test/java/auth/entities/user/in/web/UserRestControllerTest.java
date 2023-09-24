@@ -4,6 +4,7 @@ import auth.Endpoints;
 import auth.IntegrateSecurityConfig;
 import auth.IntegrateWebConfig;
 import auth.configs.security.InitialAuthorities;
+import auth.configs.verification.VerificationProperties;
 import auth.entities.authority.Authority;
 import auth.entities.authority.AuthorityService;
 import auth.entities.authority.in.web.AuthorityProjection;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,6 +65,9 @@ public class UserRestControllerTest {
 
     @MockBean
     private AuthorityService authorityService;
+
+    @MockBean
+    private VerificationProperties verificationProperties;
 
     private final MockUser mockUser = new MockUser();
 
@@ -154,6 +159,37 @@ public class UserRestControllerTest {
     @Test
     void shouldRegisterUserWhenRequestDataValidAndUserByEmailNotExists() throws Exception {
         User user = mockUser.mock();
+        given(verificationProperties.isSendEmail())
+                .willReturn(false);
+        given(passwordEncoder.encode(user.getPassword()))
+                .willReturn(user.getPassword());
+        given(userService.create(user))
+                .willReturn(user);
+        UserCreateRequest userCreateRequest = new UserCreateRequest();
+        userCreateRequest.setName(user.getName());
+        userCreateRequest.setFamilyName(user.getFamilyName());
+        userCreateRequest.setEmail(user.getEmail().getAddress());
+        userCreateRequest.setPassword(user.getPassword());
+        userCreateRequest.setPasswordConfirm(user.getPassword());
+        mockMvc.perform(post(Endpoints.USERS)
+                        .with(MockPrincipal.anonymous())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(userCreateRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
+                        .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
+        verify(verificationProperties).isSendEmail();
+        verify(passwordEncoder).encode(user.getPassword());
+        verify(userService).create(user);
+    }
+
+    @Test
+    void shouldRegisterUserWhenRequestDataValidAndUserByEmailNotExistsAndUseEmailVerificationMechanism() throws Exception {
+        User user = mockUser.mock();
+        given(verificationProperties.isSendEmail())
+                .willReturn(true);
         given(passwordEncoder.encode(user.getPassword()))
                 .willReturn(user.getPassword());
         given(userService.existsByEmail(user.getEmail().getAddress()))
@@ -175,8 +211,9 @@ public class UserRestControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
+        verify(verificationProperties).isSendEmail();
         verify(userService).existsByEmail(user.getEmail().getAddress());
-        verify(emailVerifier).verify(user.getEmail());
+        verify(emailVerifier).verify(Endpoints.USERS, user.getEmail());
         verify(passwordEncoder).encode(user.getPassword());
         verify(userService).create(user);
     }
@@ -203,6 +240,8 @@ public class UserRestControllerTest {
     @Test
     void shouldSendErrorResponseWhenRegisterUserWhenUserByEmailAlreadyExists() throws Exception {
         User user = mockUser.mock();
+        given(verificationProperties.isSendEmail())
+                .willReturn(true);
         given(passwordEncoder.encode(user.getPassword()))
                 .willReturn(user.getPassword());
         given(userService.existsByEmail(user.getEmail().getAddress()))
@@ -230,6 +269,8 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         MockMultipartFile picturePart = new MockMultipartFile("picture", "picture.jpeg",
                 MediaType.IMAGE_JPEG_VALUE, new byte[]{});
+        given(verificationProperties.isSendEmail())
+                .willReturn(false);
         given(fileService.upload(picturePart))
                 .willReturn("pictureUrl");
         given(passwordEncoder.encode(user.getPassword()))
@@ -254,7 +295,46 @@ public class UserRestControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
-        verify(emailVerifier).verify(user.getEmail());
+        verify(passwordEncoder).encode(user.getPassword());
+        verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
+        verify(fileService).upload(picturePart);
+        verify(userService).create(user);
+    }
+
+    @Test
+    void shouldRegisterUserWithUploadPictureLoadAsMultipartDataAndUseEmailVerificationMechanism() throws Exception {
+        User user = mockUser.mock();
+        MockMultipartFile picturePart = new MockMultipartFile("picture", "picture.jpeg",
+                MediaType.IMAGE_JPEG_VALUE, new byte[]{});
+        given(verificationProperties.isSendEmail())
+                .willReturn(true);
+        given(userService.existsByEmail(user.getEmail().getAddress()))
+                .willReturn(false);
+        given(fileService.upload(picturePart))
+                .willReturn("pictureUrl");
+        given(passwordEncoder.encode(user.getPassword()))
+                .willReturn(user.getPassword());
+        given(userService.create(user))
+                .willReturn(user);
+        UserCreateRequest userCreateRequest = new UserCreateRequest();
+        userCreateRequest.setName(user.getName());
+        userCreateRequest.setFamilyName(user.getFamilyName());
+        userCreateRequest.setEmail(user.getEmail().getAddress());
+        userCreateRequest.setPassword(user.getPassword());
+        userCreateRequest.setPasswordConfirm(user.getPassword());
+        MockMultipartFile userPart = new MockMultipartFile("user", "user.json",
+                MediaType.APPLICATION_JSON_VALUE, new ObjectMapper()
+                .writeValueAsBytes(userCreateRequest));
+        mockMvc.perform(multipart(Endpoints.USERS + "/multipart")
+                        .file(userPart)
+                        .file(picturePart)
+                        .with(MockPrincipal.anonymous())
+                        .with(csrf())
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
+                        .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
+        verify(emailVerifier).verify(Endpoints.USERS + "/multipart", user.getEmail());
         verify(passwordEncoder).encode(user.getPassword());
         verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
         verify(fileService).upload(picturePart);

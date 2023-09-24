@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -30,7 +31,7 @@ public class EmailVerifierImplTest {
     @Test
     void shouldSendEmailVerificationMessage() {
         Email email = new Email("karen.torosyan@outlook.com");
-        emailVerifier.verify(email);
+        emailVerifier.verify("http://localhost", email);
 
         String verificationUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .replacePath(Endpoints.EMAIL_VERIFY.concat("/{email}"))

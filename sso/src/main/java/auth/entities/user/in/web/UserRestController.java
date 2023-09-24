@@ -1,6 +1,7 @@
 package auth.entities.user.in.web;
 
 import auth.Endpoints;
+import auth.configs.verification.VerificationProperties;
 import auth.docs.openapi.*;
 import auth.entities.authority.Authority;
 import auth.entities.authority.AuthorityService;
@@ -12,6 +13,7 @@ import auth.intergrations.filesystem.FileService;
 import auth.validators.ISO8601;
 import auth.validators.LimitPasswordSize;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,8 @@ public class UserRestController {
     private final FileService fileService;
     private final AuthorityService authorityService;
 
+    private final VerificationProperties verificationProperties;
+
     @GetMapping
     @RestDocumentedGetMappingResponsePageRequireAuthorization
     ResponseEntity<Page<UserProjection>> get(@NotDocumentedSchema Pageable pageable,
@@ -55,25 +59,30 @@ public class UserRestController {
 
     @PostMapping
     @RestDocumentedPostMapping
-    ResponseEntity<Void> register(@RequestBody @Validated UserCreateRequest userCreateRequest) {
+    ResponseEntity<Void> register(@RequestBody @Validated UserCreateRequest userCreateRequest,
+                                  @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        if (!userService.existsByEmail(user.getEmail().getAddress())) {
-            emailVerifier.verify(user.getEmail());
-        }
+        emailVerification(user, request.getRequestURI());
         user.withPassword(passwordEncoder.encode(user.getPassword()));
         User createdUser = userService.create(user);
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .path("/{id}").build(createdUser.getId())).build();
     }
 
+    private void emailVerification(User user, String requestUri) {
+        if (verificationProperties.isSendEmail() &&
+                !userService.existsByEmail(user.getEmail().getAddress())) {
+            new Thread(() -> emailVerifier.verify(requestUri, user.getEmail())).start();
+        }
+    }
+
     @PostMapping(value = "/multipart", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RestDocumentedPostMapping
     ResponseEntity<Void> register(@RequestPart(name = "user") @Validated UserCreateRequest userCreateRequest,
-                                  @RequestPart(name = "picture", required = false) MultipartFile multipartFile) {
+                                  @RequestPart(name = "picture", required = false) MultipartFile multipartFile,
+                                  @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        if (!userService.existsByEmail(user.getEmail().getAddress())) {
-            emailVerifier.verify(user.getEmail());
-        }
+        emailVerification(user, request.getRequestURI());
         user.withPassword(passwordEncoder.encode(user.getPassword()));
         if (multipartFile != null) {
             fileService.validateImageExtension(multipartFile.getOriginalFilename());

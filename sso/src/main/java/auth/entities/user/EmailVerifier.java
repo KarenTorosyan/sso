@@ -2,5 +2,5 @@ package auth.entities.user;
 
 @FunctionalInterface
 public interface EmailVerifier {
-    void verify(Email email);
+    void verify(String baseUrl, Email email);
 }

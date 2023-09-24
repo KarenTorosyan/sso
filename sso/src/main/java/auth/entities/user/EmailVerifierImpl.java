@@ -19,9 +19,9 @@ public class EmailVerifierImpl implements EmailVerifier {
     private final SmtpService smtpService;
 
     @Override
-    public void verify(Email email) {
-        String verificationUri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .replacePath(Endpoints.EMAIL_VERIFY.concat("/{email}"))
+    public void verify(String baseUrl, Email email) {
+        String verificationUri = ServletUriComponentsBuilder.fromUriString(baseUrl)
+                .path(Endpoints.EMAIL_VERIFY.concat("/{email}"))
                 .replaceQueryParam("code", email.getVerificationCode())
                 .build(email.getAddress()).toString();
         String template = "templates/email-verification.html";

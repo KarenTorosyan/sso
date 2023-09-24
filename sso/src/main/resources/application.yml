@@ -22,6 +22,9 @@ files:
       - .svg
       - .gif
 
+verification:
+  send-email: true
+
 spring:
   main:
     banner-mode: off
