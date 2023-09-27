@@ -10,9 +10,7 @@ import auth.entities.user.out.persistence.mongo.UserDocument;
 import auth.utils.MongoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
-import org.springframework.data.mongodb.core.mapping.event.AfterSaveEvent;
-import org.springframework.data.mongodb.core.mapping.event.BeforeDeleteEvent;
+import org.springframework.data.mongodb.core.mapping.event.*;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Stream;
@@ -25,10 +23,19 @@ public class MongoUserEvents extends AbstractMongoEventListener<UserDocument> {
     private final SpringDataMongoUserAuthorityRepository mongoUserAuthorityRepository;
     private final SpringDataMongoUserRepository mongoUserRepository;
 
+    private boolean userNew;
+
+    @Override
+    public void onBeforeSave(BeforeSaveEvent<UserDocument> event) {
+        userNew = !mongoUserRepository.existsById(event.getSource().getId());
+    }
+
     @Override
     public void onAfterSave(AfterSaveEvent<UserDocument> event) {
         UserDocument userDocument = event.getSource();
-        applyInitialAuthorities(userDocument);
+        if (userNew) {
+            applyInitialAuthorities(userDocument);
+        }
     }
 
     private void applyInitialAuthorities(UserDocument userDocument) {
