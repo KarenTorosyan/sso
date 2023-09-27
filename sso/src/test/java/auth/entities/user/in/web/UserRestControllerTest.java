@@ -213,7 +213,7 @@ public class UserRestControllerTest {
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
         verify(verificationProperties).isSendEmail();
         verify(userService).existsByEmail(user.getEmail().getAddress());
-        verify(emailVerifier).verify(Endpoints.USERS, user.getEmail());
+        verify(emailVerifier).verify("http://localhost", user.getEmail());
         verify(passwordEncoder).encode(user.getPassword());
         verify(userService).create(user);
     }
@@ -334,7 +334,7 @@ public class UserRestControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
-        verify(emailVerifier).verify(Endpoints.USERS + "/multipart", user.getEmail());
+        verify(emailVerifier).verify("http://localhost", user.getEmail());
         verify(passwordEncoder).encode(user.getPassword());
         verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
         verify(fileService).upload(picturePart);

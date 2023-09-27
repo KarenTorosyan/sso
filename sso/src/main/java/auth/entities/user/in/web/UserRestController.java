@@ -10,6 +10,7 @@ import auth.entities.picture.Picture;
 import auth.entities.user.*;
 import auth.errors.Errors;
 import auth.intergrations.filesystem.FileService;
+import auth.utils.RequestUtils;
 import auth.validators.ISO8601;
 import auth.validators.LimitPasswordSize;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,7 +63,7 @@ public class UserRestController {
     ResponseEntity<Void> register(@RequestBody @Validated UserCreateRequest userCreateRequest,
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        emailVerification(user, request.getRequestURI());
+        emailVerification(user, RequestUtils.getRequestUrl(request));
         user.withPassword(passwordEncoder.encode(user.getPassword()));
         User createdUser = userService.create(user);
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -82,7 +83,7 @@ public class UserRestController {
                                   @RequestPart(name = "picture", required = false) MultipartFile multipartFile,
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        emailVerification(user, request.getRequestURI());
+        emailVerification(user, RequestUtils.getRequestUrl(request));
         user.withPassword(passwordEncoder.encode(user.getPassword()));
         if (multipartFile != null) {
             fileService.validateImageExtension(multipartFile.getOriginalFilename());
