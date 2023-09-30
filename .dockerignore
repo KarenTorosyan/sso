@@ -1,6 +1,7 @@
 #.gradle
 .idea
 .gradle
+./docker
 .gitattributes
 .gitignore
 build
