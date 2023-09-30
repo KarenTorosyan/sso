@@ -58,6 +58,12 @@ public class UserRestController {
         return ResponseEntity.ok(UserProjection.from(userService.getById(id)));
     }
 
+    @GetMapping("/email/{email}")
+    @RestDocumentedGetMapping
+    ResponseEntity<UserProjection> getByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(UserProjection.from(userService.getByEmail(email)));
+    }
+
     @PostMapping
     @RestDocumentedPostMapping
     ResponseEntity<Void> register(@RequestBody @Validated UserCreateRequest userCreateRequest,

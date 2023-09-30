@@ -154,6 +154,33 @@ public class UserRestControllerTest {
                         .with(MockPrincipal.anonymous())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+        verify(userService).getById(user.getId());
+    }
+
+    @Test
+    void shouldGetUserByEmailWhenUserByEmailExists() throws Exception {
+        User user = mockUser.mock();
+        given(userService.getByEmail(user.getEmail().getAddress()))
+                .willReturn(user);
+        mockMvc.perform(get(Endpoints.USERS + "/email/{email}", user.getEmail().getAddress())
+                        .with(MockPrincipal.anonymous())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(ObjectMapperUtils.configuredObjectMapper()
+                        .writeValueAsString(UserProjection.from(user))));
+        verify(userService).getByEmail(user.getEmail().getAddress());
+    }
+
+    @Test
+    void shouldSendErrorResponseWhenGetUserByEmailWhenUserByEmailNotExists() throws Exception {
+        User user = mockUser.mock();
+        given(userService.getByEmail(user.getEmail().getAddress()))
+                .willThrow(Errors.userNotExistsByEmail(user.getEmail().getAddress()));
+        mockMvc.perform(get(Endpoints.USERS + "/email/{email}", user.getEmail().getAddress())
+                        .with(MockPrincipal.anonymous())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+        verify(userService).getByEmail(user.getEmail().getAddress());
     }
 
     @Test

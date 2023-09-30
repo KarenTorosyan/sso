@@ -17,6 +17,7 @@ public class StaticEndpointPolicy implements EndpointPolicy {
             AntPathRequestMatcher.antMatcher(HttpMethod.POST, Endpoints.USERS),
             AntPathRequestMatcher.antMatcher(HttpMethod.POST, Endpoints.USERS + "/multipart"),
             AntPathRequestMatcher.antMatcher(HttpMethod.GET, Endpoints.USERS + "/*"),
+            AntPathRequestMatcher.antMatcher(HttpMethod.GET, Endpoints.USERS + "/email/*")
     };
 
     private static final RequestMatcher[] AUTHENTICATION = {
