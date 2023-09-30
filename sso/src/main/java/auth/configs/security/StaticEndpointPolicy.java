@@ -14,6 +14,7 @@ import java.util.Map;
 public class StaticEndpointPolicy implements EndpointPolicy {
 
     private static final RequestMatcher[] PUBLIC = {
+            AntPathRequestMatcher.antMatcher(HttpMethod.OPTIONS, "/**"),
             AntPathRequestMatcher.antMatcher(HttpMethod.POST, Endpoints.USERS),
             AntPathRequestMatcher.antMatcher(HttpMethod.POST, Endpoints.USERS + "/multipart"),
             AntPathRequestMatcher.antMatcher(HttpMethod.GET, Endpoints.USERS + "/*"),
