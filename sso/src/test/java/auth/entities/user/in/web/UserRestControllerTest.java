@@ -26,7 +26,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -523,9 +522,9 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("oldPassword", user.getPassword())
-                        .param("newPassword", user.getPassword())
-                        .param("confirmPassword", user.getPassword()))
+                        .param("current", user.getPassword())
+                        .param("new", user.getPassword())
+                        .param("confirmNew", user.getPassword()))
                 .andExpect(status().isNoContent());
         verify(userService).getById(user.getId());
         verify(passwordEncoder).matches(user.getPassword(), user.getPassword());
@@ -541,9 +540,9 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("oldPassword", user.getPassword())
-                        .param("newPassword", user.getPassword())
-                        .param("confirmPassword", user.getPassword()))
+                        .param("current", user.getPassword())
+                        .param("new", user.getPassword())
+                        .param("confirmNew", user.getPassword()))
                 .andExpect(status().isNotFound());
     }
 
@@ -555,9 +554,9 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("oldPassword", user.getPassword())
-                        .param("newPassword", "password has been limited maximum 20 characters")
-                        .param("confirmPassword", user.getPassword()))
+                        .param("current", user.getPassword())
+                        .param("new", user.getPassword())
+                        .param("confirmNew", "password has been limited maximum 20 characters"))
                 .andExpect(status().isBadRequest());
         verify(userService).getById(user.getId());
     }
@@ -570,9 +569,9 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("oldPassword", user.getPassword())
-                        .param("newPassword", user.getPassword())
-                        .param("confirmPassword", user.getPassword() + "a"))
+                        .param("current", user.getPassword())
+                        .param("new", user.getPassword())
+                        .param("confirmNew", user.getPassword() + "a"))
                 .andExpect(status().isBadRequest());
         verify(userService).getById(user.getId());
     }

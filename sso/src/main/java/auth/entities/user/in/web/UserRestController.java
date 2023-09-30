@@ -135,14 +135,14 @@ public class UserRestController {
     @PutMapping("/{id}/password")
     @RestDocumentedPutMappingRequireAuthentication
     ResponseEntity<Void> changePassword(@PathVariable String id,
-                                        @RequestParam(required = false) String oldPassword,
-                                        @RequestParam @LimitPasswordSize String newPassword,
-                                        @RequestParam String confirmPassword) {
+                                        @RequestParam(required = false) String current,
+                                        @RequestParam(name = "new") @LimitPasswordSize String newPassword,
+                                        @RequestParam String confirmNew) {
         User user = userService.getById(id);
-        if (!newPassword.equals(confirmPassword)) {
+        if (!newPassword.equals(confirmNew)) {
             throw Errors.passwordNotConfirmed();
         }
-        if (user.getPassword() != null && !passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (user.getPassword() != null && !passwordEncoder.matches(current, user.getPassword())) {
             throw Errors.passwordInvalid();
         }
         userService.edit(user.withPassword(passwordEncoder.encode(newPassword)));

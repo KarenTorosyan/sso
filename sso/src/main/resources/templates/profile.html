@@ -441,9 +441,9 @@
         })
     });
 
-    function changePassword(oldPassword, newPassword, confirmPassword) {
+    function changePassword(current, newPassword, confirmNew) {
         return new Promise((resolve, reject) => {
-            fetch(`${endpoints.users}/${userId}/password?oldPassword=${oldPassword}&newPassword=${newPassword}&confirmPassword=${confirmPassword}`, {
+            fetch(`${endpoints.users}/${userId}/password?current=${current}&new=${newPassword}&confirmNew=${confirmNew}`, {
                 method: "put",
                 headers: withCsrfToken(new Headers())
             }).then(response => {
