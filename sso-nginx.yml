@@ -81,6 +81,9 @@ services:
         source: ./docker/sso/locales
         target: /var/sso/static/locales
       - type: bind
+        source: .docker/sso/org
+        target: /var/sso/static/org
+      - type: bind
         source: ./docker/certbot/etc/letsencrypt
         target: /etc/letsencrypt
         read_only: true

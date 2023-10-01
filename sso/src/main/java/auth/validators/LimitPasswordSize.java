@@ -10,6 +10,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Size(min = 6, max = 20, message = "{user_password_minmax}")
+@Size(min = 6, max = 20, message = "{password_minmax}")
 public @interface LimitPasswordSize {
 }

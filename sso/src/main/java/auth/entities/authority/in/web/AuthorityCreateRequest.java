@@ -17,12 +17,12 @@ import lombok.Setter;
 public class AuthorityCreateRequest {
 
     @JsonProperty(value = "name", required = true)
-    @NotBlank(message = "{authority_name_required}")
-    @Size(max = 20, message = "{authority_name_max}")
+    @NotBlank(message = "{name_required}")
+    @Size(max = 20, message = "{name_max}")
     private String name;
 
     @JsonProperty("description")
-    @Size(max = 100, message = "{authority_description_max}")
+    @Size(max = 100, message = "{description_max}")
     private String description;
 
     @JsonIgnore

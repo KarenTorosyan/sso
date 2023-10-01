@@ -12,7 +12,7 @@
         <div class="container">
             <div class="container-center">
                 <div class="login-section-body">
-                    <p class="login-section-title" th:text="#{login_to_account}">Login to Account</p>
+                    <p class="login-section-title" th:text="#{login}">Login to Account</p>
                     <div th:if="${param.error}">
                         <p class="login-error-text error-text" th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}"
                            th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}">Bad credentials!</p>

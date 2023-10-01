@@ -12,11 +12,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
+import java.time.Duration;
+
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    public static final String LOCALE_ATTR = "locale";
+
     private final CorsConfiguration corsConfiguration;
+
+    private final LocaleChangeInterceptor localeChangeInterceptor;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -26,7 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LocaleChangeInterceptor());
+        registry.addInterceptor(localeChangeInterceptor);
     }
 
     @Configuration
@@ -44,7 +50,17 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Bean
         LocaleResolver localeResolver() {
-            return new CookieLocaleResolver("locale");
+            var resolver = new CookieLocaleResolver(LOCALE_ATTR);
+            resolver.setCookieMaxAge(Duration.ofDays(10000));
+            resolver.setCookiePath("/");
+            return resolver;
+        }
+
+        @Bean
+        LocaleChangeInterceptor localeChangeInterceptor() {
+            var interceptor = new LocaleChangeInterceptor();
+            interceptor.setParamName(LOCALE_ATTR);
+            return interceptor;
         }
     }
 }

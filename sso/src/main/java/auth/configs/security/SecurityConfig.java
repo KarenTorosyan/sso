@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -36,6 +37,7 @@ public class SecurityConfig {
                     c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
                     c.maximumSessions(10);
                 })
+                .addFilterBefore(new LocaleResolverFilter(), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(c -> {
                     c.loginPage(Endpoints.LOGIN);
                     c.usernameParameter("email");

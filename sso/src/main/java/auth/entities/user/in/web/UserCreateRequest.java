@@ -20,16 +20,16 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Confirm(field = "password", confirm = "passwordConfirm",
-        message = "{user_password_not_confirmed}")
+        message = "{password_not_confirmed}")
 public final class UserCreateRequest {
 
     @JsonProperty(value = "email", required = true)
-    @NotBlank(message = "{user_email_required}")
-    @Pattern(regexp = Patterns.EMAIL_PATTERN, message = "{user_email_invalid}")
+    @NotBlank(message = "{email_required}")
+    @Pattern(regexp = Patterns.EMAIL_PATTERN, message = "{email_invalid}")
     private String email;
 
     @JsonProperty(value = "password", required = true)
-    @NotBlank(message = "{user_password_required}")
+    @NotBlank(message = "{password_required}")
     @LimitPasswordSize
     private String password;
 
@@ -37,11 +37,11 @@ public final class UserCreateRequest {
     private String passwordConfirm;
 
     @JsonProperty("name")
-    @Size(max = 20, message = "{user_name_max}")
+    @Size(max = 20, message = "{name_max}")
     private String name;
 
     @JsonProperty("familyName")
-    @Size(max = 30, message = "{user_familyName_max}")
+    @Size(max = 30, message = "{familyName_max}")
     private String familyName;
 
     @JsonIgnore

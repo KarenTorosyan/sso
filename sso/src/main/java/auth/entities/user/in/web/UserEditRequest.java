@@ -16,11 +16,11 @@ import lombok.Setter;
 public final class UserEditRequest {
 
     @JsonProperty(value = "name", required = true)
-    @Size(max = 20, message = "{user_name_max}")
+    @Size(max = 20, message = "{name_max}")
     private String name;
 
     @JsonProperty(value = "familyName", required = true)
-    @Size(max = 30, message = "{user_familyName_max}")
+    @Size(max = 30, message = "{familyName_max}")
     private String familyName;
 
     @JsonIgnore
