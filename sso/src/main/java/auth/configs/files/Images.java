@@ -7,7 +7,7 @@ import java.util.Set;
 @Getter
 public class Images {
 
-    private static final Set<String> DEFAULT_SUPPORTED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif");
+    private static final Set<String> DEFAULT_SUPPORTED_EXTENSIONS = Set.of(".jpg", ".png", ".gif");
 
     private Set<String> supportedExtensions = DEFAULT_SUPPORTED_EXTENSIONS;
 

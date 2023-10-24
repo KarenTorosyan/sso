@@ -2,53 +2,130 @@
 <html lang="en" xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta th:replace="~{fragments/meta}">
-    <title th:text="#{login}">Login</title>
     <link rel="stylesheet" href="../static/css/style.css" th:href="@{'/css/style.css'}">
+    <link rel="icon" type="image/x-icon" href="../static/favicon.ico" th:href="@{'favicon.ico'}">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <title th:text="#{login}">Login</title>
 </head>
 <body>
-<main class="main">
-    <section class="login-section">
-        <div class="container">
-            <div class="container-center">
-                <div class="login-section-body">
-                    <p class="login-section-title" th:text="#{login}">Login to Account</p>
-                    <div th:if="${param.error}">
-                        <p class="login-error-text error-text" th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}"
-                           th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}">Bad credentials!</p>
-                    </div>
-                    <p th:if="${param.registered}" class="login-success-text success-text" th:text="#{you_are_successfully_registered}">You are successfully registered!</p>
-                    <p th:if="${successEmailVerifiedText != null}" class="login-success-text success-text" th:text="${successEmailVerifiedText}">Your email verified!</p>
-                    <p th:if="${param.logout}" class="login-success-text success-text" th:text="#{you_are_successfully_logged_out}">You are successfully logged out!</p>
-                    <form class="form login-form" method="post" action="profile.html" th:action="@{'/login'}">
-                        <div class="form-row login-form-row">
-                            <label class="form-label login-form-label" for="email" th:text="#{email}">Email</label>
-                            <input class="form-input login-form-input" id="email" name="email" type="text">
-                        </div>
-                        <div class="form-row login-form-row">
-                            <label class="form-label login-form-label" for="password" th:text="#{password}">Password</label>
-                            <input class="form-input login-form-input" id="password" name="password" type="password">
-                        </div>
-                        <div class="form-row login-form-row">
-                            <input class="form-input-checkbox login-form-input-checkbox" id="rememberMe" name="remember-me" type="checkbox" checked>
-                            <label class="form-label-checkbox login-form-label-checkbox" for="rememberMe" th:text="#{remember_me}">Remember me</label>
-                        </div>
-                        <div class="form-row login-form-row">
-                            <button class="action login-form-action login-form-action-submit" type="submit" th:text="#{login}">Login</button>
-                        </div>
-                    </form>
-                    <div class="login-openid">
-                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/google_authorization_code_flow'}">Google</a>
-                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/azure_authorization_code_flow'}">Azure</a>
-                        <a class="openid-provider" href="#" th:href="@{'/oauth2/authorization/facebook_implicit_flow'}">Facebook</a>
-                    </div>
-                    <div class="other-links">
-                        <a class="login-register-link" href="register.html" th:href="@{'/register'}" th:text="#{registration}">Register</a>
-                    </div>
+<div class="window">
+    <div class="window-body">
+        <p class="title" th:text="#{login}">Login</p>
+        <form class="form" id="registerForm" method="post" action="profile.html" th:action="@{'/login'}">
+            <div class="form-row" th:if="${param.registered}">
+                <div class="success-container">
+                    <span class="material-symbols-outlined success-container-icon">done</span>
+                    <span class="success-container-text" th:text="#{you_are_successfully_registered}">
+                        <span>You are successfully registered!</span>
+                    </span>
                 </div>
             </div>
-        </div>
-    </section>
-</main>
+            <div class="form-row" th:if="${emailVerified}">
+                <div class="success-container">
+                    <span class="material-symbols-outlined success-container-icon">done</span>
+                    <span class="success-container-text" th:text="#{your_email_verified}">
+                        <span>Your email verified.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row" th:if="${param.unauthorized}">
+                <div class="error-container">
+                    <span class="material-symbols-outlined error-container-icon">error</span>
+                    <span class="error-container-text" th:text="#{you_are_not_authorized}">
+                        <span>You are not authorized!</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row" th:if="${emailVerificationCodeInvalid != null}">
+                <div class="error-container">
+                    <span class="material-symbols-outlined error-container-icon">error</span>
+                    <span class="error-container-text" th:text="${emailVerificationCodeInvalid}">
+                        <span>The email verification code invalid!</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row" th:if="${emailVerificationCodeExpired != null}">
+                <div class="error-container">
+                    <span class="material-symbols-outlined error-container-icon">error</span>
+                    <span class="error-container-text" th:text="${emailVerificationCodeExpired}">
+                        <span>The email verification code expired!</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row" th:if="${param.logout}">
+                <div class="success-container">
+                    <span class="material-symbols-outlined success-container-icon">done</span>
+                    <span class="success-container-text" th:text="#{you_are_successfully_logged_out}">
+                        <span>You are successfully logged out.</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row" th:if="${successPasswordRestore != null}">
+                <div class="success-container">
+                    <span class="material-symbols-outlined success-container-icon">done</span>
+                    <span class="success-container-text">
+                        <span>Your password changed!</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row">
+                <input class="form-input" id="email" type="email" name="email">
+                <label class="form-label" for="email" th:text="#{email}">Email</label>
+            </div>
+            <div class="form-row password-viewer-context">
+                <input class="form-input password-input" id="password" type="password" name="password">
+                <label class="form-label" for="password" th:text="#{password}">Password</label>
+                <span class="material-symbols-outlined password-viewer-icon">visibility</span>
+            </div>
+            <div class="form-row checkbox-context">
+                <input class="checkbox" id="loginRememberMeCheckbox" type="checkbox" name="remember-me">
+                <label class="checkbox-label" id="loginRememberMeCheckboxLabel" for="loginRememberMeCheckbox">
+                    <span id="loginRememberMeCheckboxLabelIcon"
+                          class="material-symbols-outlined checkbox-icon">check_box_outline_blank</span>
+                    <span class="checkbox-text" th:text="#{remember_my_credentials}">Remember my credentials</span>
+                </label>
+            </div>
+            <div class="form-row" th:if="${session.SPRING_SECURITY_LAST_EXCEPTION != null}">
+                <div class="error-container">
+                    <span class="material-symbols-outlined error-container-icon">error</span>
+                    <span class="error-container-text" th:text="${session.SPRING_SECURITY_LAST_EXCEPTION.message}">
+                        <span>Bad credentials!</span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-row">
+                <button class="button" type="submit" th:text="#{login}">Login</button>
+            </div>
+            <div class="form-row">
+                <div class="oidc-providers">
+                    <a class="oidc-provider" href="#"
+                       th:href="@{'/oauth2/authorization/google_authorization_code_flow'}"
+                       onmouseenter="colorRandomize()">Google</a>
+                    <a class="oidc-provider" href="#" th:href="@{'/oauth2/authorization/azure_authorization_code_flow'}"
+                       onmouseenter="colorRandomize()">Azure</a>
+                    <a class="oidc-provider" href="#" th:href="@{'/oauth2/authorization/facebook_implicit_flow'}"
+                       onmouseenter="colorRandomize()">Facebook</a>
+                </div>
+            </div>
+            <div class="form-row">
+                <a class="link" href="password-forget.html" th:href="@{'/password/forget'}"
+                   th:text="#{password_forget}">Password forget?</a>
+            </div>
+            <div class="form-row">
+                <a class="link" href="register.html" th:href="@{'/register'}" th:text="#{register}">Register</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="theme-switcher">
+    <button class="button button-with-icon button-with-icon-circle" onclick="toggleTheme()">
+        <span id="themeIcon" class="material-symbols-outlined button-icon">dark_mode</span>
+    </button>
+</div>
+<script src="../static/js/common.js" th:src="@{'/js/common.js'}"></script>
 </body>
 </html>

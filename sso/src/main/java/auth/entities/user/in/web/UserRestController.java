@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping(Endpoints.USERS)
@@ -70,7 +71,7 @@ public class UserRestController {
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
         emailVerification(user, RequestUtils.getRequestUrl(request));
-        user.withPassword(passwordEncoder.encode(user.getPassword()));
+        user.withPassword(new Password(passwordEncoder.encode(user.getPassword().getValue())));
         User createdUser = userService.create(user);
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .path("/{id}").build(createdUser.getId())).build();
@@ -79,7 +80,8 @@ public class UserRestController {
     private void emailVerification(User user, String requestUri) {
         if (verificationProperties.isSendEmail() &&
                 !userService.existsByEmail(user.getEmail().getAddress())) {
-            new Thread(() -> emailVerifier.verify(requestUri, user.getEmail())).start();
+            CompletableFuture.runAsync(() ->
+                    emailVerifier.verify(requestUri, user.getEmail()));
         }
     }
 
@@ -90,7 +92,7 @@ public class UserRestController {
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
         emailVerification(user, RequestUtils.getRequestUrl(request));
-        user.withPassword(passwordEncoder.encode(user.getPassword()));
+        user.withPassword(new Password(passwordEncoder.encode(user.getPassword().getValue())));
         if (multipartFile != null) {
             fileService.validateImageExtension(multipartFile.getOriginalFilename());
             String pictureUrl = ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -142,10 +144,10 @@ public class UserRestController {
         if (!newPassword.equals(confirmNew)) {
             throw Errors.passwordNotConfirmed();
         }
-        if (user.getPassword() != null && !passwordEncoder.matches(current, user.getPassword())) {
+        if (user.getPassword() != null && !passwordEncoder.matches(current, user.getPassword().getValue())) {
             throw Errors.passwordInvalid();
         }
-        userService.edit(user.withPassword(passwordEncoder.encode(newPassword)));
+        userService.edit(user.withPassword(new Password(passwordEncoder.encode(newPassword))));
         return ResponseEntity.noContent().build();
     }
 

@@ -14,8 +14,7 @@ public class LoginController {
 
     @GetMapping(Endpoints.LOGIN)
     String login() {
-        long usersCount = userService.getCount();
-        if (usersCount == 0) {
+        if (userService.getCount() == 0) {
             return "redirect:/register";
         }
         return "login";

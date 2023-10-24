@@ -22,11 +22,11 @@ public class User {
 
     private Email email;
 
-    private String password;
+    private Password password;
 
     private Account account = new Account();
 
-    public User(Email email, String password) {
+    public User(Email email, Password password) {
         this.email = email;
         this.password = password;
     }
@@ -51,7 +51,7 @@ public class User {
         return this;
     }
 
-    public User withPassword(String password) {
+    public User withPassword(Password password) {
         this.password = password;
         return this;
     }

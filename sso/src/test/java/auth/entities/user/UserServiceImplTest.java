@@ -39,7 +39,7 @@ public class UserServiceImplTest {
     private final MockUserAuthority mockUserAuthority = new MockUserAuthority();
 
     @Test
-    void shouldCreateUserWhenUserByNameNotExists() {
+    void shouldCreateUserWhenUserByEmailNotExists() {
         User user = mockUser.mock();
         given(userRepository.existsByEmail(user.getEmail().getAddress()))
                 .willReturn(false);
@@ -52,7 +52,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void shouldThrowErrorWhenCreateUserWhenUserByNameAlreadyExists() {
+    void shouldThrowErrorWhenCreateUserWhenUserByEmailAlreadyExists() {
         User user = mockUser.mock();
         given(userRepository.existsByEmail(user.getEmail().getAddress()))
                 .willReturn(true);
@@ -126,7 +126,7 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void shouldThrowErrorWhenGetUserByIdWhenUserByEmailIdExists() {
+    void shouldThrowErrorWhenGetUserByIdWhenUserByEmailIdNotExists() {
         User user = mockUser.mock();
         given(userRepository.findById(user.getId()))
                 .willReturn(Optional.empty());

@@ -13,27 +13,20 @@ volumes:
 
 configs:
   nginx-config:
-    name: nginx-config
     file: docker/nginx/nginx.conf
   sso-config-initial:
-    name: sso-config
     file: sso/src/main/resources/application.yml
 
 secrets:
   sso-mongo-secret:
-    name: sso-mongo-secret
     file: docker/sso/mongo-secret.txt
   sso-smtp-mail-outlook-secret:
-    name: sso-smtp-mail-outlook-secret
     file: docker/sso/smtp-mail-outlook-secret.txt
   sso-client-google-secret:
-    name: sso-client-google-secret
     file: docker/sso/client-google-secret.txt
   sso-client-azure-secret:
-    name: sso-client-azure-secret
     file: docker/sso/client-azure-secret.txt
   sso-client-facebook-secret:
-    name: sso-client-facebook-secret
     file: docker/sso/client-facebook-secret.txt
 
 services:
@@ -81,8 +74,11 @@ services:
         source: ./docker/sso/locales
         target: /var/sso/static/locales
       - type: bind
-        source: .docker/sso/org
+        source: ./docker/sso/org
         target: /var/sso/static/org
+      - type: bind
+        source: ./docker/sso/templates
+        target: /var/sso/static/templates
       - type: bind
         source: ./docker/certbot/etc/letsencrypt
         target: /etc/letsencrypt

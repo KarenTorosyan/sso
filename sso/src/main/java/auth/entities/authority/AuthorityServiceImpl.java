@@ -17,9 +17,6 @@ public class AuthorityServiceImpl implements AuthorityService {
     @Transactional
     @Override
     public Authority create(Authority authority) {
-        if (authority.getId() != null && existsById(authority.getId())) {
-            throw Errors.authorityAlreadyExistsById(authority.getId());
-        }
         if (existsByName(authority.getName())) {
             throw Errors.authorityAlreadyExistsByName(authority.getName());
         }
@@ -65,6 +62,7 @@ public class AuthorityServiceImpl implements AuthorityService {
         return authorityRepository.existsByName(name);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public long getCount() {
         return authorityRepository.count();

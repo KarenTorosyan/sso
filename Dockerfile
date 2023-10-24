@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-alpine3.14
+FROM openjdk:21-jdk-slim
 WORKDIR '/opt/auth'
 VOLUME /var/sso/static
 COPY . .

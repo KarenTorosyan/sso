@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ public class Email {
     private String address;
 
     private String verificationCode;
+
+    private Instant verificationCodeExpiresIn;
 
     private boolean verified;
 
@@ -32,6 +35,11 @@ public class Email {
 
     public Email withVerificationCode(String verificationCode) {
         this.verificationCode = verificationCode;
+        return this;
+    }
+
+    public Email withVerificationCodeExpiresIn(Instant verificationCodeExpiresIn) {
+        this.verificationCodeExpiresIn = verificationCodeExpiresIn;
         return this;
     }
 

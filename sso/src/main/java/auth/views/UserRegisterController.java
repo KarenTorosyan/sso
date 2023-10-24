@@ -14,10 +14,9 @@ public class UserRegisterController {
     private final UserService userService;
 
     @GetMapping(Endpoints.REGISTER)
-    String register(Model model) {
-        long usersCount = userService.getCount();
-        if (usersCount == 0) {
-            model.addAttribute("registerAsAdminText", "register_as_admin");
+    String renderRegisterPage(Model model) {
+        if (userService.getCount() == 0) {
+            model.addAttribute("registerAsAdmin", true);
         }
         return "register";
     }

@@ -16,7 +16,7 @@ public class UserDocumentTest {
                 u.getName().equals(user.getName()) &&
                 u.getFamilyName().equals(user.getFamilyName()) &&
                 u.getEmailDocument().getEmail().equals(user.getEmail()) &&
-                u.getPassword().equals(user.getPassword()) &&
+                u.getPasswordDocument().getPassword().equals(user.getPassword()) &&
                 u.getPictureDocument().getPicture().equals(user.getPicture()) &&
                 u.getAccountDocument().getAccount().equals(user.getAccount()) &&
                 u.getUser().equals(user));

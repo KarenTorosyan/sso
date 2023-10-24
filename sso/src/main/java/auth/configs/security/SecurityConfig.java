@@ -3,7 +3,7 @@ package auth.configs.security;
 import auth.Endpoints;
 import auth.configs.web.SessionInfo;
 import auth.entities.user.UserService;
-import org.springframework.context.MessageSource;
+import org.springframework.boot.web.server.Cookie;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -30,7 +30,10 @@ public class SecurityConfig {
         return httpSecurity
                 .cors(Customizer.withDefaults())
                 .csrf(c -> {
-                    c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                    CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+                    repository.setCookieCustomizer(customize ->
+                            customize.sameSite(Cookie.SameSite.LAX.name()));
+                    c.csrfTokenRepository(repository);
                     c.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler());
                 })
                 .sessionManagement(c -> {
@@ -41,7 +44,8 @@ public class SecurityConfig {
                 .formLogin(c -> {
                     c.loginPage(Endpoints.LOGIN);
                     c.usernameParameter("email");
-                    c.defaultSuccessUrl(Endpoints.PROFILE);
+                    c.successHandler(new DefaultSuccessAuthenticationHandler()
+                            .defaultSuccessUrl(Endpoints.PROFILE));
                 })
                 .rememberMe(c -> c.rememberMeCookieName(SecurityAttributes.REMEMBER_ME_COOKIE_NAME))
                 .oauth2Login(c -> {
@@ -68,8 +72,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService userDetailsService(UserService userService, MessageSource messageSource) {
-        return new UserDetailsServiceImpl(userService, messageSource);
+    UserDetailsService userDetailsService(UserService userService) {
+        return new UserDetailsServiceImpl(userService);
     }
 
     @Bean

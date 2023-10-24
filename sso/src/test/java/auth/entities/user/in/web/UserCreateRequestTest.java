@@ -12,14 +12,14 @@ public class UserCreateRequestTest {
     void shouldGetUserFromRequest() {
         User user = new MockUser().mock();
         UserCreateRequest userCreateRequest = new UserCreateRequest(user.getEmail().getAddress(),
-                user.getPassword(), user.getPassword(),
+                user.getPassword().getValue(), user.getPassword().getValue(),
                 user.getName(), user.getFamilyName());
         assertThat(userCreateRequest)
                 .matches(u -> u.getName().equals(user.getName()) &&
                         u.getFamilyName().equals(user.getFamilyName()) &&
                         u.getEmail().equals(user.getEmail().getAddress()) &&
-                        u.getPassword().equals(user.getPassword()) &&
-                        u.getPasswordConfirm().equals(user.getPassword()) &&
+                        u.getPassword().equals(user.getPassword().getValue()) &&
+                        u.getPasswordConfirm().equals(user.getPassword().getValue()) &&
                         u.getUser().equals(user));
     }
 }

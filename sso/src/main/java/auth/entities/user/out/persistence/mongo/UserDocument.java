@@ -31,7 +31,7 @@ public class UserDocument {
     private EmailDocument emailDocument;
 
     @Field("password")
-    private String password;
+    private PasswordDocument passwordDocument;
 
     @Field("picture")
     private PictureDocument pictureDocument;
@@ -45,14 +45,14 @@ public class UserDocument {
                 user.getName(),
                 user.getFamilyName(),
                 EmailDocument.from(user.getEmail()),
-                user.getPassword(),
+                PasswordDocument.from(user.getPassword()),
                 PictureDocument.from(user.getPicture()),
                 AccountDocument.from(user.getAccount())
         );
     }
 
     public User getUser() {
-        return new User(emailDocument.getEmail(), password)
+        return new User(emailDocument.getEmail(), passwordDocument.getPassword())
                 .withId(id)
                 .withName(name)
                 .withFamilyName(familyName)

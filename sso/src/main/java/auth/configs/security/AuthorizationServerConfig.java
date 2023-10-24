@@ -26,7 +26,6 @@ import org.springframework.security.oauth2.server.authorization.token.OAuth2Toke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -57,8 +56,6 @@ public class AuthorizationServerConfig {
         return context -> {
             JwtClaimsSet claims = context.getClaims().build();
             User user = userService.getByEmail(claims.getSubject());
-            context.getClaims().subject(user.getId());
-
             if (context.getTokenType().equals(OAuth2TokenType.ACCESS_TOKEN)) {
                 List<String> authorities = userService.getAuthorities(user.getId(), Pageable.unpaged())
                         .map(userAuthority -> userAuthority.getAuthority().getName())
@@ -74,31 +71,37 @@ public class AuthorizationServerConfig {
     private Map<String, Object> customizeIdToken(JwtEncodingContext context, User user) {
         JwtClaimsSet jwtClaimsSet = context.getClaims().build();
         OidcUserInfo.Builder builder = OidcUserInfo.builder();
-
         if (context.getAuthorizedScopes().contains(StandardClaimNames.PROFILE)) {
-            builder.givenName(user.getName())
-                    .familyName(user.getFamilyName())
-                    .name(user.getName() + " " + user.getFamilyName())
+            builder
                     .preferredUsername(user.getEmail().getAddress())
                     .picture(user.getPicture() != null ? user.getPicture().getUrl() : null)
-                    .profile(jwtClaimsSet.getIssuer().toString() + Endpoints.PROFILE)
-                    .locale(LocaleContextHolder.getLocale().toString())
-                    .zoneinfo(ZoneId.systemDefault().getId());
-        }
-        if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
-            builder.email(user.getEmail().getAddress())
-                    .emailVerified(user.getEmail().isVerified());
+                    .profile(jwtClaimsSet.getIssuer().toString() +
+                            Endpoints.USERS + "/email/" + user.getEmail().getAddress())
+                    .email(user.getEmail().getAddress())
+                    .emailVerified(user.getEmail().isVerified())
+                    .locale(LocaleContextHolder.getLocale().toString());
+
+            if (user.getName() != null) {
+                builder.givenName(user.getName());
+                builder.name(user.getName());
+
+                if (user.getFamilyName() != null) {
+                    builder.familyName(user.getFamilyName());
+                    builder.name(user.getName() + " " + user.getFamilyName());
+                }
+            }
         }
         return builder.build().getClaims();
     }
 
     private Map<String, Object> customizeAccessToken(JwtEncodingContext context,
                                                      User user, List<String> authorities) {
-        OAuth2TokenClaimsSet.Builder builder = OAuth2TokenClaimsSet.builder()
-                .claim(Claims.AUTHORITIES, authorities);
-        if (context.getAuthorizedScopes().contains(StandardClaimNames.EMAIL)) {
-            builder.claim(StandardClaimNames.EMAIL, user.getEmail().getAddress());
-            builder.claim(StandardClaimNames.EMAIL_VERIFIED, user.getEmail().isVerified());
+        OAuth2TokenClaimsSet.Builder builder = OAuth2TokenClaimsSet.builder();
+        if (context.getAuthorizedScopes().contains(StandardClaimNames.PROFILE)) {
+            builder
+                    .claim(Claims.AUTHORITIES, authorities)
+                    .claim(StandardClaimNames.EMAIL, user.getEmail().getAddress())
+                    .claim(StandardClaimNames.EMAIL_VERIFIED, user.getEmail().isVerified());
         }
         return builder.build().getClaims();
     }

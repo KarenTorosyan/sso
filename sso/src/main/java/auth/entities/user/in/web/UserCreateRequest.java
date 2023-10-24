@@ -1,6 +1,7 @@
 package auth.entities.user.in.web;
 
 import auth.entities.user.Email;
+import auth.entities.user.Password;
 import auth.entities.user.User;
 import auth.utils.Patterns;
 import auth.validators.Confirm;
@@ -46,7 +47,7 @@ public final class UserCreateRequest {
 
     @JsonIgnore
     public User getUser() {
-        return new User(new Email(email), password)
+        return new User(new Email(email), new Password(password))
                 .withName(name)
                 .withFamilyName(familyName);
     }

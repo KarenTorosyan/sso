@@ -1,10 +1,18 @@
 plugins {
-    id("org.springframework.boot") version("${spring_version}")
+    id("java")
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependencyManagement)
 }
 
-apply plugin: ("io.spring.dependency-management")
+repositories {
+    mavenCentral()
+}
 
 dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -15,13 +23,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     testImplementation("org.springframework.security:spring-security-test")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdoc_openapi_version}")
+    implementation(libs.springdoc.openapi.webmvc.ui)
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    testImplementation("org.testcontainers:mongodb:${testcontainers_version}")
-}
-
-application {
-    setMainClass("auth.SsoServer")
+    testImplementation(libs.testcontainers.mongodb)
 }
 
 test {
@@ -36,4 +40,9 @@ bootJar {
     setArchiveVersion("1.0.0")
     setArchiveClassifier("snapshot")
 }
+
+jar {
+    enabled(false)
+}
+
 

@@ -4,8 +4,6 @@ import auth.entities.user.User;
 import auth.entities.user.UserService;
 import auth.errors.NotExistsException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,8 +18,6 @@ import java.util.stream.Collectors;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserService userService;
-
-    private final MessageSource messageSource;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -40,9 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         try {
             return userService.getByEmail(username);
         } catch (NotExistsException e) {
-            String message = messageSource.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials",
-                    e.getArguments(), "Bad credentials", LocaleContextHolder.getLocale());
-            throw new NotExistsException(message, e.getCode(), e.getArguments());
+            throw new UsernameNotFoundException(username);
         }
     }
 }

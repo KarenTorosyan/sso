@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.Instant;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -21,6 +23,8 @@ public class EmailDocument {
     @Field("verificationCode")
     private String verificationCode;
 
+    private Instant verificationCodeExpiresIn;
+
     @Field("verified")
     private boolean verified;
 
@@ -28,11 +32,13 @@ public class EmailDocument {
         return new EmailDocument(
                 email.getAddress(),
                 email.getVerificationCode(),
+                email.getVerificationCodeExpiresIn(),
                 email.isVerified()
         );
     }
 
     public Email getEmail() {
-        return new Email(address, verificationCode, verified);
+        return new Email(address, verificationCode,
+                verificationCodeExpiresIn, verified);
     }
 }

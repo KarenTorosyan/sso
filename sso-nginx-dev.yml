@@ -1,0 +1,104 @@
+version: '3.9'
+
+networks:
+  sso-net:
+    driver: overlay
+
+volumes:
+  sso-volume:
+  sso-db-volume:
+
+configs:
+  sso-config-initial:
+    file: sso/src/main/resources/application.yml
+  nginx-config:
+    file: docker/nginx/nginx-dev.conf
+
+secrets:
+  sso-mongo-secret:
+    file: docker/sso/mongo-secret.txt
+  sso-smtp-mail-outlook-secret:
+    file: docker/sso/smtp-mail-outlook-secret.txt
+  sso-client-google-secret:
+    file: docker/sso/client-google-secret.txt
+  sso-client-azure-secret:
+    file: docker/sso/client-azure-secret.txt
+  sso-client-facebook-secret:
+    file: docker/sso/client-facebook-secret.txt
+  sso-db-mongo-secret:
+    file: docker/mongo/secret.txt
+
+services:
+  nginx:
+    image: nginx:1.25-alpine3.18
+    networks:
+      - sso-net
+    ports:
+      - '9000:9000'
+    configs:
+      - source: nginx-config
+        target: /etc/nginx/nginx.conf
+
+  sso:
+    image: sso:1.0
+    networks:
+      - sso-net
+    configs:
+      - source: sso-config-initial
+        target: /etc/sso/application.yml
+    env_file:
+      - docker/sso/application-dev.env
+    secrets:
+      - source: sso-mongo-secret
+        target: /run/secrets/mongo-secret.txt
+      - source: sso-smtp-mail-outlook-secret
+        target: /run/secrets/smtp-mail-outlook-secret.txt
+      - source: sso-client-google-secret
+        target: /run/secrets/client-google-secret.txt
+      - source: sso-client-azure-secret
+        target: /run/secrets/client-azure-secret.txt
+      - source: sso-client-facebook-secret
+        target: /run/secrets/client-facebook-secret.txt
+    ports:
+      - '9000'
+    volumes:
+      - sso-volume:/var/sso/static
+      - type: bind
+        source: ./docker/sso/locales
+        target: /var/sso/static/locales
+      - type: bind
+        source: ./docker/sso/org
+        target: /var/sso/static/org
+      - type: bind
+        source: ./docker/sso/templates
+        target: /var/sso/static/templates
+    deploy:
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: any
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    dns_search: smtp-mail.outlook.com
+
+  sso-db-mongo:
+    image: mongo:7.0-rc-jammy
+    volumes:
+      - sso-db-volume:/data/db
+    networks:
+      - sso-net
+    secrets:
+      - source: sso-db-mongo-secret
+        target: /run/secrets/mongo-secret.txt
+    env_file:
+      - docker/mongo/properties.env
+    ports:
+      - '27017'
+    deploy:
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: any

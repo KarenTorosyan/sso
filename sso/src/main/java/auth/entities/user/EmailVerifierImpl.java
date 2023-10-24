@@ -1,11 +1,12 @@
 package auth.entities.user;
 
 import auth.Endpoints;
+import auth.configs.Resources;
 import auth.errors.Errors;
 import auth.intergrations.smtp.SmtpService;
 import jakarta.mail.Message;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -18,22 +19,25 @@ public class EmailVerifierImpl implements EmailVerifier {
 
     private final SmtpService smtpService;
 
+    private final Resources resources;
+
     @Override
     public void verify(String baseUrl, Email email) {
-        String verificationUri = ServletUriComponentsBuilder.fromUriString(baseUrl)
-                .path(Endpoints.EMAIL_VERIFY.concat("/{email}"))
+        String verificationLink = ServletUriComponentsBuilder.fromUriString(baseUrl)
+                .replacePath(Endpoints.EMAIL_VERIFY)
+                .replaceQueryParam("email", email.getAddress())
                 .replaceQueryParam("code", email.getVerificationCode())
                 .build(email.getAddress()).toString();
-        String template = "templates/email-verification.html";
+        Resource verificationEmailMessage = resources.getVerificationEmailMessageTemplate();
         String content;
         try {
-            InputStream inputStream = new ClassPathResource(template).getInputStream();
+            InputStream inputStream = verificationEmailMessage.getInputStream();
             content = new String(inputStream.readAllBytes())
-                    .replaceAll("#verificationUri", verificationUri);
+                    .replaceAll("#link", verificationLink);
         } catch (IOException e) {
-            throw Errors.fileNotFound(template);
+            throw Errors.fileNotFound(verificationEmailMessage.getFilename());
         }
         smtpService.sendMimeMessage(content, "text/html",
-                "VerificationSubject", Message.RecipientType.TO, email.getAddress());
+                "Email verification", Message.RecipientType.TO, email.getAddress());
     }
 }

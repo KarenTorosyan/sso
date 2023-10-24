@@ -29,7 +29,7 @@ public class TypedUserDetails implements UserDetails, AuthenticatedPrincipal {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return user.getPassword().getValue();
     }
 
     @Override

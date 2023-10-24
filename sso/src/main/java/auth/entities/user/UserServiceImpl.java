@@ -20,9 +20,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User create(User user) {
-        if (user.getId() != null && existsById(user.getId())) {
-            throw Errors.userAlreadyExistsById(user.getId());
-        }
         if (existsByEmail(user.getEmail().getAddress())) {
             throw Errors.userAlreadyExistsByEmail(user.getEmail().getAddress());
         }
@@ -68,6 +65,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(email);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public long getCount() {
         return userRepository.count();

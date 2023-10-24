@@ -21,28 +21,8 @@ public class Errors {
         return new NotExistsException("The user '" + email + "' not exists!", "user_not_exists_by_email", email);
     }
 
-    public static AlreadyExistsException userAlreadyExistsById(String id) {
-        return new AlreadyExistsException("The user by id '" + id + "' already exists!", "user_already_exists_by_id", id);
-    }
-
     public static AlreadyExistsException userAlreadyExistsByEmail(String email) {
         return new AlreadyExistsException("The user '" + email + "' already exists!", "user_already_exists_by_email", email);
-    }
-
-    public static RestrictionException accountLocked(String email, Instant lockedIn) {
-        return new RestrictionException("Your account locked in " + lockedIn, "account_locked", lockedIn, email);
-    }
-
-    public static RestrictionException accountExpired(String email, Instant expiredIn) {
-        return new RestrictionException("Your account expired in " + expiredIn, "account_expired", expiredIn, email);
-    }
-
-    public static RestrictionException userDisabled(String email, Instant disabledIn) {
-        return new RestrictionException("You are disabled in " + disabledIn, "user_disabled", disabledIn, email);
-    }
-
-    public static RestrictionException credentialsExpired(String email, Instant expiresIn) {
-        return new RestrictionException("Your credentials expired in " + expiresIn, "credentials_expired", expiresIn, email);
     }
 
     public static NotExistsException authorityNotExistsById(String id) {
@@ -51,10 +31,6 @@ public class Errors {
 
     public static NotExistsException authorityNotExistsByName(String name) {
         return new NotExistsException("The authority '" + name + "' not exists!", "authority_not_exists_by_name", name);
-    }
-
-    public static AlreadyExistsException authorityAlreadyExistsById(String id) {
-        return new AlreadyExistsException("The authority by id '" + id + "' already exists!", "authority_already_exists_by_id", id);
     }
 
     public static AlreadyExistsException authorityAlreadyExistsByName(String name) {
@@ -93,6 +69,14 @@ public class Errors {
         return new InvalidationException("The email verification code invalid!", "invalid_email_verification_code", code);
     }
 
+    public static InvalidationException emailVerificationCodeExpired(Instant instant) {
+        return new InvalidationException("The email verification code expires in " + instant, "expired_email_verification_code", instant);
+    }
+
+    public static AlreadyExistsException emailAlreadyVerified(String email) {
+        return new AlreadyExistsException("The email address already verified!", "email_already_verified", email);
+    }
+
     public static RuntimeException fileTransfer(Exception e, String destination) {
         return new RuntimeException("Error on transfer file to destination " + destination, e);
     }
@@ -114,10 +98,22 @@ public class Errors {
     }
 
     public static InvalidationException emailAddressInvalid() {
-        return new InvalidationException("The email invalid!", "user_email_invalid");
+        return new InvalidationException("The email invalid!", "email_invalid");
     }
 
     public static NotExistsException sessionNotFound(String sessionId) {
         return new NotExistsException("Session not found by session id '" + sessionId + "'", "session_not_found", sessionId);
+    }
+
+    public static InvalidationException passwordRestoreCodeInvalid(String email, String code) {
+        return new InvalidationException("The password restore code invalid!", "password_restore_code_invalid", email, code);
+    }
+
+    public static InvalidationException passwordRestoreCodeExpired(Instant instant) {
+        return new InvalidationException("THe password restore code expired in " + instant, "password_restore_code_expired", instant);
+    }
+
+    public static InvalidationException passwordLengthValidation(int min, int max) {
+        return new InvalidationException("The password must be minimum " + min + " and maximum " + max + "characters", "password_length_validation", min, max);
     }
 }

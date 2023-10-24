@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: 9001
   forward-headers-strategy: framework
   servlet:
     session:
@@ -29,10 +29,13 @@ files:
   images:
     supported-extensions:
       - .jpg
-      - .jpeg
       - .png
       - .svg
       - .gif
+
+resources:
+  verification-email-message-template: classpath:templates/email-verification-message.html
+  password-forget-email-message-template: classpath:templates/password-forget-email-message.html
 
 verification:
   send-email: true

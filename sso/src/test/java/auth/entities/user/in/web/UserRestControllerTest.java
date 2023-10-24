@@ -187,16 +187,16 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         given(verificationProperties.isSendEmail())
                 .willReturn(false);
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.create(user))
                 .willReturn(user);
         UserCreateRequest userCreateRequest = new UserCreateRequest();
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         mockMvc.perform(post(Endpoints.USERS)
                         .with(MockPrincipal.anonymous())
                         .with(csrf())
@@ -207,7 +207,7 @@ public class UserRestControllerTest {
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
         verify(verificationProperties).isSendEmail();
-        verify(passwordEncoder).encode(user.getPassword());
+        verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(userService).create(user);
     }
 
@@ -216,8 +216,8 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         given(verificationProperties.isSendEmail())
                 .willReturn(true);
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.existsByEmail(user.getEmail().getAddress()))
                 .willReturn(false);
         given(userService.create(user))
@@ -226,8 +226,8 @@ public class UserRestControllerTest {
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         mockMvc.perform(post(Endpoints.USERS)
                         .with(MockPrincipal.anonymous())
                         .with(csrf())
@@ -240,7 +240,7 @@ public class UserRestControllerTest {
         verify(verificationProperties).isSendEmail();
         verify(userService).existsByEmail(user.getEmail().getAddress());
         verify(emailVerifier).verify("http://localhost", user.getEmail());
-        verify(passwordEncoder).encode(user.getPassword());
+        verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(userService).create(user);
     }
 
@@ -252,8 +252,8 @@ public class UserRestControllerTest {
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         mockMvc.perform(post(Endpoints.USERS)
                         .with(MockPrincipal.anonymous())
                         .with(csrf())
@@ -268,8 +268,8 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         given(verificationProperties.isSendEmail())
                 .willReturn(true);
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.existsByEmail(user.getEmail().getAddress()))
                 .willReturn(true);
         given(userService.create(user))
@@ -278,8 +278,8 @@ public class UserRestControllerTest {
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         mockMvc.perform(post(Endpoints.USERS)
                         .with(MockPrincipal.anonymous())
                         .with(csrf())
@@ -299,16 +299,16 @@ public class UserRestControllerTest {
                 .willReturn(false);
         given(fileService.upload(picturePart))
                 .willReturn("pictureUrl");
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.create(user))
                 .willReturn(user);
         UserCreateRequest userCreateRequest = new UserCreateRequest();
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         MockMultipartFile userPart = new MockMultipartFile("user", "user.json",
                 MediaType.APPLICATION_JSON_VALUE, new ObjectMapper()
                 .writeValueAsBytes(userCreateRequest));
@@ -321,7 +321,7 @@ public class UserRestControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
-        verify(passwordEncoder).encode(user.getPassword());
+        verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
         verify(fileService).upload(picturePart);
         verify(userService).create(user);
@@ -338,16 +338,16 @@ public class UserRestControllerTest {
                 .willReturn(false);
         given(fileService.upload(picturePart))
                 .willReturn("pictureUrl");
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.create(user))
                 .willReturn(user);
         UserCreateRequest userCreateRequest = new UserCreateRequest();
         userCreateRequest.setName(user.getName());
         userCreateRequest.setFamilyName(user.getFamilyName());
         userCreateRequest.setEmail(user.getEmail().getAddress());
-        userCreateRequest.setPassword(user.getPassword());
-        userCreateRequest.setPasswordConfirm(user.getPassword());
+        userCreateRequest.setPassword(user.getPassword().getValue());
+        userCreateRequest.setPasswordConfirm(user.getPassword().getValue());
         MockMultipartFile userPart = new MockMultipartFile("user", "user.json",
                 MediaType.APPLICATION_JSON_VALUE, new ObjectMapper()
                 .writeValueAsBytes(userCreateRequest));
@@ -361,7 +361,7 @@ public class UserRestControllerTest {
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
         verify(emailVerifier).verify("http://localhost", user.getEmail());
-        verify(passwordEncoder).encode(user.getPassword());
+        verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
         verify(fileService).upload(picturePart);
         verify(userService).create(user);
@@ -513,22 +513,22 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         given(userService.getById(user.getId()))
                 .willReturn(user);
-        given(passwordEncoder.matches(user.getPassword(), user.getPassword()))
+        given(passwordEncoder.matches(user.getPassword().getValue(), user.getPassword().getValue()))
                 .willReturn(true);
-        given(passwordEncoder.encode(user.getPassword()))
-                .willReturn(user.getPassword());
+        given(passwordEncoder.encode(user.getPassword().getValue()))
+                .willReturn(user.getPassword().getValue());
         given(userService.edit(user))
                 .willReturn(user);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("current", user.getPassword())
-                        .param("new", user.getPassword())
-                        .param("confirmNew", user.getPassword()))
+                        .param("current", user.getPassword().getValue())
+                        .param("new", user.getPassword().getValue())
+                        .param("confirmNew", user.getPassword().getValue()))
                 .andExpect(status().isNoContent());
         verify(userService).getById(user.getId());
-        verify(passwordEncoder).matches(user.getPassword(), user.getPassword());
-        verify(passwordEncoder).encode(user.getPassword());
+        verify(passwordEncoder).matches(user.getPassword().getValue(), user.getPassword().getValue());
+        verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(userService).edit(user);
     }
 
@@ -540,9 +540,9 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("current", user.getPassword())
-                        .param("new", user.getPassword())
-                        .param("confirmNew", user.getPassword()))
+                        .param("current", user.getPassword().getValue())
+                        .param("new", user.getPassword().getValue())
+                        .param("confirmNew", user.getPassword().getValue()))
                 .andExpect(status().isNotFound());
     }
 
@@ -554,8 +554,8 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("current", user.getPassword())
-                        .param("new", user.getPassword())
+                        .param("current", user.getPassword().getValue())
+                        .param("new", user.getPassword().getValue())
                         .param("confirmNew", "password has been limited maximum 20 characters"))
                 .andExpect(status().isBadRequest());
         verify(userService).getById(user.getId());
@@ -569,8 +569,8 @@ public class UserRestControllerTest {
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
                         .with(MockPrincipal.authorization())
                         .with(csrf())
-                        .param("current", user.getPassword())
-                        .param("new", user.getPassword())
+                        .param("current", user.getPassword().getValue())
+                        .param("new", user.getPassword().getValue())
                         .param("confirmNew", user.getPassword() + "a"))
                 .andExpect(status().isBadRequest());
         verify(userService).getById(user.getId());

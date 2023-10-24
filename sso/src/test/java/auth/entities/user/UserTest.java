@@ -12,7 +12,7 @@ public class UserTest {
     @Test
     void shouldCreateInstance() {
         Email email = new Email("karen.torosyan@outlook.com");
-        String password = "pass";
+        Password password = new Password("pass");
         User user = new User(email, password);
         assertThat(user).matches(u -> u.getId() == null &&
                 u.getName() == null &&

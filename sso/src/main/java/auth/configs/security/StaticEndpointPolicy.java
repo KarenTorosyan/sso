@@ -34,7 +34,8 @@ public class StaticEndpointPolicy implements EndpointPolicy {
 
     private static final Map<RequestMatcher, String[]> AUTHORIZATION = Map.of(
             AntPathRequestMatcher.antMatcher(Endpoints.AUTHORITIES + "/**"), InitialAuthorities.admin(),
-            AntPathRequestMatcher.antMatcher(Endpoints.USERS + "/**"), InitialAuthorities.admin()
+            AntPathRequestMatcher.antMatcher(Endpoints.USERS + "/**"), InitialAuthorities.admin(),
+            AntPathRequestMatcher.antMatcher(HttpMethod.POST, Endpoints.EMAIL_VERIFY), InitialAuthorities.admin()
     );
 
     @Override
