@@ -16,6 +16,7 @@ import auth.mock.MockPrincipal;
 import auth.mock.MockUser;
 import auth.mock.MockUserAuthority;
 import auth.utils.ObjectMapperUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +37,7 @@ import java.net.URI;
 import java.time.Instant;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -239,7 +239,7 @@ public class UserRestControllerTest {
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
         verify(verificationProperties).isSendEmail();
         verify(userService).existsByEmail(user.getEmail().getAddress());
-        verify(emailVerifier).verify("http://localhost", user.getEmail());
+        verify(emailVerifier).verify(any(HttpServletRequest.class), any(Email.class));
         verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(userService).create(user);
     }
@@ -360,7 +360,7 @@ public class UserRestControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("location", Matchers.endsWith(UriComponentsBuilder.newInstance()
                         .path(Endpoints.USERS).path("/{id}").build(user.getId()).toString())));
-        verify(emailVerifier).verify("http://localhost", user.getEmail());
+        verify(emailVerifier).verify(any(HttpServletRequest.class), any(Email.class));
         verify(passwordEncoder).encode(user.getPassword().getValue());
         verify(fileService).validateImageExtension(picturePart.getOriginalFilename());
         verify(fileService).upload(picturePart);

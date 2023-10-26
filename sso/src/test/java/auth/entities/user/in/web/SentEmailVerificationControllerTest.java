@@ -4,12 +4,14 @@ import auth.Endpoints;
 import auth.IntegrateSecurityConfig;
 import auth.IntegrateWebConfig;
 import auth.configs.security.InitialAuthorities;
+import auth.entities.user.Email;
 import auth.entities.user.EmailVerifier;
 import auth.entities.user.User;
 import auth.entities.user.UserService;
 import auth.errors.Errors;
 import auth.mock.MockPrincipal;
 import auth.mock.MockUser;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -79,6 +82,7 @@ public class SentEmailVerificationControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
         verify(userService).getByEmail(user.getEmail().getAddress());
+        verify(emailVerifier).verify(any(HttpServletRequest.class), any(Email.class));
         verify(userService).edit(user);
     }
 }

@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 @Controller
 @RequiredArgsConstructor
@@ -88,9 +89,14 @@ public class PasswordForgetController {
         }
 
         // sent email
-        CompletableFuture.runAsync(() ->
+        Runnable sendEmail = () ->
                 smtpService.sendMimeMessage(content, "text/html",
-                        "Restore access", Message.RecipientType.TO, email));
+                        "Restore access", Message.RecipientType.TO, email);
+        CompletableFuture.runAsync(sendEmail, Executors.newSingleThreadExecutor())
+                .exceptionally(throwable -> {
+                    throwable.printStackTrace(System.err);
+                    return null;
+                });
         model.addAttribute("emailSent", true);
 
         return "password-forget";

@@ -10,7 +10,6 @@ import auth.entities.picture.Picture;
 import auth.entities.user.*;
 import auth.errors.Errors;
 import auth.intergrations.filesystem.FileService;
-import auth.utils.RequestUtils;
 import auth.validators.ISO8601;
 import auth.validators.LimitPasswordSize;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping(Endpoints.USERS)
@@ -70,18 +68,17 @@ public class UserRestController {
     ResponseEntity<Void> register(@RequestBody @Validated UserCreateRequest userCreateRequest,
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        emailVerification(user, RequestUtils.getRequestUrl(request));
+        emailVerification(request, user);
         user.withPassword(new Password(passwordEncoder.encode(user.getPassword().getValue())));
         User createdUser = userService.create(user);
         return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .path("/{id}").build(createdUser.getId())).build();
     }
 
-    private void emailVerification(User user, String requestUri) {
+    private void emailVerification(HttpServletRequest request, User user) {
         if (verificationProperties.isSendEmail() &&
                 !userService.existsByEmail(user.getEmail().getAddress())) {
-            CompletableFuture.runAsync(() ->
-                    emailVerifier.verify(requestUri, user.getEmail()));
+            emailVerifier.verify(request, user.getEmail());
         }
     }
 
@@ -91,7 +88,7 @@ public class UserRestController {
                                   @RequestPart(name = "picture", required = false) MultipartFile multipartFile,
                                   @NotDocumentedSchema HttpServletRequest request) {
         User user = userCreateRequest.getUser();
-        emailVerification(user, RequestUtils.getRequestUrl(request));
+        emailVerification(request, user);
         user.withPassword(new Password(passwordEncoder.encode(user.getPassword().getValue())));
         if (multipartFile != null) {
             fileService.validateImageExtension(multipartFile.getOriginalFilename());

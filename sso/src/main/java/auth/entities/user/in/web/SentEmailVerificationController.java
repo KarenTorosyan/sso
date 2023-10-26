@@ -7,7 +7,6 @@ import auth.entities.user.EmailVerifier;
 import auth.entities.user.User;
 import auth.entities.user.UserService;
 import auth.errors.Errors;
-import auth.utils.RequestUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping(Endpoints.EMAIL_VERIFY)
@@ -47,8 +45,7 @@ public class SentEmailVerificationController {
 
         userService.edit(user);
 
-        CompletableFuture.runAsync(() ->
-                emailVerifier.verify(RequestUtils.getRequestUrl(request), user.getEmail()));
+        emailVerifier.verify(request, user.getEmail());
 
         return ResponseEntity.noContent().build();
     }
