@@ -152,7 +152,7 @@ springdoc:
     oauth:
       client-id: public
       use-pkce-with-authorization-code-grant: true
-      scopes: openid, profile, email
+      scopes: openid, profile
     csrf:
       enabled: true
       cookie-name: XSRF-TOKEN
