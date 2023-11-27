@@ -28,25 +28,25 @@ public class MongoAuthorityRepositoryTest extends IntegrateTestContainers.Mongo 
         assertThat(savedAuthority).isEqualTo(authority);
         assertThat(mongoAuthorityRepository.findById(authority.getId()))
                 .contains(authority);
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldFindAuthorityByIdWhenAuthorityByIdExists() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.findById(authority.getId()))
                 .contains(authority);
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldFindAuthorityByNameWhenAuthorityByNameExists() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.findByName(authority.getName()))
                 .contains(authority);
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
@@ -64,9 +64,9 @@ public class MongoAuthorityRepositoryTest extends IntegrateTestContainers.Mongo 
     @Test
     void shouldReturnTrueWhenAuthorityByIdExists() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.existsById(authority.getId())).isTrue();
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
@@ -78,9 +78,9 @@ public class MongoAuthorityRepositoryTest extends IntegrateTestContainers.Mongo 
     @Test
     void shouldReturnTrueWhenAuthorityByNameExists() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.existsByName(authority.getName())).isTrue();
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
@@ -92,36 +92,37 @@ public class MongoAuthorityRepositoryTest extends IntegrateTestContainers.Mongo 
     @Test
     void shouldFindAuthoritiesCount() {
         assertThat(mongoAuthorityRepository.count()).isEqualTo(0);
-        mongoAuthorityRepository.save(mockAuthority.mock());
+        Authority savedAuthority = mongoAuthorityRepository.save(mockAuthority.mock());
         assertThat(mongoAuthorityRepository.count()).isEqualTo(1);
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldFindAllAndReturnAuthoritiesPage() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.findAll(Pageable.unpaged()))
                 .contains(authority)
                 .hasSize(1);
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldSearchAndReturnAuthoritiesPage() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.search(authority.getName(), Pageable.unpaged()))
                 .contains(authority)
                 .hasSize(1);
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldDeleteAuthorityByIdWhenAuthorityByIdExists() {
         Authority authority = mockAuthority.mock();
-        mongoAuthorityRepository.save(authority);
+        Authority savedAuthority = mongoAuthorityRepository.save(authority);
         assertThat(mongoAuthorityRepository.existsById(authority.getId())).isTrue();
-        mongoAuthorityRepository.deleteById(authority.getId());
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
         assertThat(mongoAuthorityRepository.existsById(authority.getId())).isFalse();
     }
 

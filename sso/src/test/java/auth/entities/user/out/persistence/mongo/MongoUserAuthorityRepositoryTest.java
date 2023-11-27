@@ -1,6 +1,7 @@
 package auth.entities.user.out.persistence.mongo;
 
 import auth.IntegrateTestContainers;
+import auth.entities.authority.Authority;
 import auth.entities.authority.out.persistence.mongo.MongoAuthorityRepository;
 import auth.entities.user.UserAuthority;
 import auth.mock.MockUserAuthority;
@@ -27,26 +28,26 @@ public class MongoUserAuthorityRepositoryTest extends IntegrateTestContainers.Mo
     @Test
     void shouldSaveUserAuthority() {
         UserAuthority userAuthority = mockUserAuthority.mock();
-        mongoAuthorityRepository.save(userAuthority.getAuthority());
+        Authority savedAuthority = mongoAuthorityRepository.save(userAuthority.getAuthority());
         UserAuthority savedUserAuthority = mongoUserAuthorityRepository.save(userAuthority);
         mongoUserAuthorityRepository.save(userAuthority);
         assertThat(savedUserAuthority)
                 .isEqualTo(userAuthority);
         assertThat(mongoUserAuthorityRepository.find(userAuthority))
                 .contains(userAuthority);
-        mongoUserAuthorityRepository.delete(userAuthority);
-        mongoAuthorityRepository.deleteById(userAuthority.getAuthority().getId());
+        mongoUserAuthorityRepository.delete(savedUserAuthority);
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldReturnUserAuthorityWhenUserAuthorityExists() {
         UserAuthority userAuthority = mockUserAuthority.mock();
-        mongoAuthorityRepository.save(userAuthority.getAuthority());
-        mongoUserAuthorityRepository.save(userAuthority);
+        Authority savedAuthority = mongoAuthorityRepository.save(userAuthority.getAuthority());
+        UserAuthority savedUserAuthority = mongoUserAuthorityRepository.save(userAuthority);
         assertThat(mongoUserAuthorityRepository.find(userAuthority))
                 .contains(userAuthority);
-        mongoUserAuthorityRepository.delete(userAuthority);
-        mongoAuthorityRepository.deleteById(userAuthority.getAuthority().getId());
+        mongoUserAuthorityRepository.delete(savedUserAuthority);
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
@@ -59,11 +60,11 @@ public class MongoUserAuthorityRepositoryTest extends IntegrateTestContainers.Mo
     @Test
     void shouldReturnTrueWhenUserAuthorityByUserIdAndAuthorityExists() {
         UserAuthority userAuthority = mockUserAuthority.mock();
-        mongoUserAuthorityRepository.save(userAuthority);
+        UserAuthority savedUserAuthority = mongoUserAuthorityRepository.save(userAuthority);
         assertThat(mongoUserAuthorityRepository.existsByUserIdAndAuthority(
                 userAuthority.getUserId(), userAuthority.getAuthority()))
                 .isTrue();
-        mongoUserAuthorityRepository.delete(userAuthority);
+        mongoUserAuthorityRepository.delete(savedUserAuthority);
     }
 
     @Test
@@ -77,24 +78,24 @@ public class MongoUserAuthorityRepositoryTest extends IntegrateTestContainers.Mo
     @Test
     void shouldFindAndReturnUserAuthoritiesByUserId() {
         UserAuthority userAuthority = mockUserAuthority.mock();
-        mongoAuthorityRepository.save(userAuthority.getAuthority());
-        mongoUserAuthorityRepository.save(userAuthority);
+        Authority savedAuthority = mongoAuthorityRepository.save(userAuthority.getAuthority());
+        UserAuthority savedUserAuthority = mongoUserAuthorityRepository.save(userAuthority);
         assertThat(mongoUserAuthorityRepository.findAllByUserId(
                 userAuthority.getUserId(), Pageable.unpaged()))
                 .contains(userAuthority)
                 .hasSize(1);
-        mongoUserAuthorityRepository.delete(userAuthority);
-        mongoAuthorityRepository.deleteById(userAuthority.getAuthority().getId());
+        mongoUserAuthorityRepository.delete(savedUserAuthority);
+        mongoAuthorityRepository.deleteById(savedAuthority.getId());
     }
 
     @Test
     void shouldDeleteUserAuthorityWhenUserUserHasThisAuthority() {
         UserAuthority userAuthority = mockUserAuthority.mock();
-        mongoUserAuthorityRepository.save(userAuthority);
+        UserAuthority savedUserAuthority = mongoUserAuthorityRepository.save(userAuthority);
         assertThat(mongoUserAuthorityRepository.existsByUserIdAndAuthority(
                 userAuthority.getUserId(), userAuthority.getAuthority()))
                 .isTrue();
-        mongoUserAuthorityRepository.delete(userAuthority);
+        mongoUserAuthorityRepository.delete(savedUserAuthority);
         assertThat(mongoUserAuthorityRepository.existsByUserIdAndAuthority(
                 userAuthority.getUserId(), userAuthority.getAuthority()))
                 .isFalse();

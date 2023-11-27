@@ -4,6 +4,8 @@ import auth.entities.authority.Authority;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Set;
+
 public interface UserService {
 
     User create(User user);
@@ -21,6 +23,10 @@ public interface UserService {
     long getCount();
 
     Page<User> getAll(Pageable pageable);
+
+    Page<User> getAllById(Set<String> ids, Pageable pageable);
+
+    Page<User> getAllByEmail(Set<String> emails, Pageable pageable);
 
     Page<User> search(String text, Pageable pageable);
 

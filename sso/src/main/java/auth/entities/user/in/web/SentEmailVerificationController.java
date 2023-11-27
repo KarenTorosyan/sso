@@ -2,6 +2,7 @@ package auth.entities.user.in.web;
 
 import auth.Endpoints;
 import auth.docs.openapi.NotDocumentedSchema;
+import auth.docs.openapi.RestDocumentedPostMappingRequireAuthentication;
 import auth.docs.openapi.RestDocumentedPostMappingRequireAuthorization;
 import auth.entities.user.EmailVerifier;
 import auth.entities.user.User;
@@ -29,7 +30,7 @@ public class SentEmailVerificationController {
     private final EmailVerifier emailVerifier;
 
     @PostMapping
-    @RestDocumentedPostMappingRequireAuthorization
+    @RestDocumentedPostMappingRequireAuthentication
     ResponseEntity<Void> sentEmail(@RequestParam String email,
                                    @NotDocumentedSchema HttpServletRequest request) {
 

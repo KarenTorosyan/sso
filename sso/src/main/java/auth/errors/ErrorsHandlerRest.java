@@ -31,6 +31,11 @@ public class ErrorsHandlerRest {
         return MessageSourceUtils.localize(messageSource, e);
     }
 
+    @ExceptionHandler(AccessException.class)
+    ResponseEntity<ErrorResponse> handle(AccessException e) {
+        return new ResponseEntity<>(new ErrorResponse(localize(e)), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(UsernameNotFoundException.class)
     ResponseEntity<ErrorResponse> handle(UsernameNotFoundException e) {
         NotExistsException notExistsException = Errors.userNotExistsByEmail(e.getMessage());

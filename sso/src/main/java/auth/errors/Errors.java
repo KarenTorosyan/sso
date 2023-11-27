@@ -13,6 +13,10 @@ public class Errors {
         return new RuntimeException("Forbidden!");
     }
 
+    public static AccessException noEnoughAccess(String user) {
+        return new AccessException("You '" + user + "' haven't enough access!", "not_enough_access", user);
+    }
+
     public static NotExistsException userNotExistsById(String id) {
         return new NotExistsException("The user by id '" + id + "' not exists!", "user_not_exists_by_id", id);
     }

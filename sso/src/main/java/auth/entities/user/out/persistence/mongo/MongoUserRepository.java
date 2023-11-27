@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 @ConditionalOnSelectedDatabaseMongo
 @Repository
@@ -54,6 +55,18 @@ public class MongoUserRepository implements UserRepository {
     @Override
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable)
+                .map(UserDocument::getUser);
+    }
+
+    @Override
+    public Page<User> findAllById(Set<String> ids, Pageable pageable) {
+        return userRepository.findAllById(ids, pageable)
+                .map(UserDocument::getUser);
+    }
+
+    @Override
+    public Page<User> findAllByEmail(Set<String> emails, Pageable pageable) {
+        return userRepository.findAllByEmailDocumentAddress(emails, pageable)
                 .map(UserDocument::getUser);
     }
 

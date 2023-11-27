@@ -10,8 +10,6 @@ import auth.entities.picture.Picture;
 import auth.entities.user.*;
 import auth.errors.Errors;
 import auth.intergrations.filesystem.FileService;
-import auth.validators.ISO8601;
-import auth.validators.LimitPasswordSize;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +17,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.Instant;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping(Endpoints.USERS)
-@Validated
 @Tag(name = "User")
 @RequiredArgsConstructor
 public class UserRestController {
@@ -43,12 +43,19 @@ public class UserRestController {
     private final VerificationProperties verificationProperties;
 
     @GetMapping
-    @RestDocumentedGetMappingResponsePageRequireAuthorization
+    @RestDocumentedGetMappingResponsePage
     ResponseEntity<Page<UserProjection>> get(@NotDocumentedSchema Pageable pageable,
-                                             @RequestParam(required = false) String term) {
-        Page<User> users = term == null ? userService.getAll(pageable) :
-                userService.search(term, pageable);
-        return ResponseEntity.ok(users.map(UserProjection::from));
+                                             @RequestParam(required = false) String term,
+                                             @RequestParam(required = false) Set<String> id,
+                                             @RequestParam(required = false) Set<String> email) {
+        Page<User> usersPage = Optional.ofNullable(term)
+                .map(param -> userService.search(param, pageable))
+                .orElse(Optional.ofNullable(id)
+                        .map(ids -> userService.getAllById(ids, pageable))
+                        .orElse(Optional.ofNullable(email)
+                                .map(emails -> userService.getAllByEmail(emails, pageable))
+                                .orElse(userService.getAll(pageable))));
+        return ResponseEntity.ok(usersPage.map(UserProjection::from));
     }
 
     @GetMapping("/{id}")
@@ -107,6 +114,11 @@ public class UserRestController {
     ResponseEntity<Void> edit(@PathVariable String id,
                               @RequestBody @Validated UserEditRequest userEditRequest) {
         User user = userService.getById(id);
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (!authentication.getName().equals(user.getEmail().getAddress())) {
+            throw Errors.noEnoughAccess(authentication.getName());
+        }
         userService.edit(userEditRequest.getModifiedUser(user));
         return ResponseEntity.noContent().build();
     }
@@ -114,7 +126,13 @@ public class UserRestController {
     @DeleteMapping("/{id}")
     @RestDocumentedDeleteMappingRequireAuthentication
     ResponseEntity<Void> delete(@PathVariable String id) {
-        userService.deleteById(id);
+        User user = userService.getById(id);
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (!authentication.getName().equals(user.getEmail().getAddress())) {
+            throw Errors.noEnoughAccess(authentication.getName());
+        }
+        userService.deleteById(user.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -123,6 +141,11 @@ public class UserRestController {
     ResponseEntity<Void> changePicture(@PathVariable String id,
                                        @RequestPart(name = "picture") MultipartFile multipartFile) {
         User user = userService.getById(id);
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (!authentication.getName().equals(user.getEmail().getAddress())) {
+            throw Errors.noEnoughAccess(authentication.getName());
+        }
         fileService.validateImageExtension(multipartFile.getOriginalFilename());
         String pictureUrl = ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .replacePath(Endpoints.UPLOADS)
@@ -134,45 +157,38 @@ public class UserRestController {
     @PutMapping("/{id}/password")
     @RestDocumentedPutMappingRequireAuthentication
     ResponseEntity<Void> changePassword(@PathVariable String id,
-                                        @RequestParam(required = false) String current,
-                                        @RequestParam(name = "new") @LimitPasswordSize String newPassword,
-                                        @RequestParam String confirmNew) {
+                                        @RequestBody @Validated PasswordChangeRequest request) {
         User user = userService.getById(id);
-        if (!newPassword.equals(confirmNew)) {
-            throw Errors.passwordNotConfirmed();
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (!authentication.getName().equals(user.getEmail().getAddress())) {
+            throw Errors.noEnoughAccess(authentication.getName());
         }
-        if (user.getPassword() != null && !passwordEncoder.matches(current, user.getPassword().getValue())) {
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword().getValue())) {
             throw Errors.passwordInvalid();
         }
-        userService.edit(user.withPassword(new Password(passwordEncoder.encode(newPassword))));
+        userService.edit(user.withPassword(new Password(passwordEncoder.encode(request.getNewPassword()))));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/account")
-    @RestDocumentedGetMappingRequireAuthentication
+    @RestDocumentedGetMapping
     ResponseEntity<AccountProjection> getAccount(@PathVariable String id) {
         User user = userService.getById(id);
         return ResponseEntity.ok(AccountProjection.from(user.getAccount()));
     }
 
     @PutMapping("/{id}/account")
-    @RestDocumentedPutMappingRequireAuthentication
+    @RestDocumentedPutMappingRequireAuthorization
     ResponseEntity<Void> editAccount(@PathVariable String id,
-                                     @ISO8601 @RequestParam(required = false) String lockedIn,
-                                     @ISO8601 @RequestParam(required = false) String disabledIn,
-                                     @ISO8601 @RequestParam(required = false) String expiresIn,
-                                     @ISO8601 @RequestParam(required = false) String credentialsExpiresIn) {
+                                     @RequestBody @Validated AccountAccessChangeRequest request) {
         User user = userService.getById(id);
-        userService.edit(user.withAccount(new Account()
-                .lockedIn(Instant.parse(lockedIn))
-                .disabledIn(Instant.parse(disabledIn))
-                .expiresIn(Instant.parse(expiresIn))
-                .credentialsExpiresIn(Instant.parse(credentialsExpiresIn))));
+        userService.edit(user.withAccount(request.getAccount()));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/authorities")
-    @RestDocumentedGetMappingResponsePageRequireAuthorization
+    @RestDocumentedGetMappingResponsePage
     ResponseEntity<Page<AuthorityProjection>> getAuthorities(@PathVariable String id,
                                                              @NotDocumentedSchema Pageable pageable) {
         return ResponseEntity.ok(userService.getAuthorities(id, pageable)

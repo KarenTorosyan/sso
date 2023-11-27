@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -202,6 +203,32 @@ public class UserServiceImplTest {
                 .containsAll(users)
                 .hasSize(1);
         verify(userRepository).findAll(pageable);
+    }
+
+    @Test
+    void shouldGetUsersPageById() {
+        Pageable pageable = Pageable.unpaged();
+        Page<User> users = mockUser.mockPage(pageable);
+        Set<String> ids = Set.of("1");
+        given(userRepository.findAllById(ids, pageable))
+                .willReturn(users);
+        assertThat(userService.getAllById(ids, pageable))
+                .containsAll(users)
+                .hasSize(1);
+        verify(userRepository).findAllById(ids, pageable);
+    }
+
+    @Test
+    void shouldReturnUsersPageByEmail() {
+        Pageable pageable = Pageable.unpaged();
+        Page<User> users = mockUser.mockPage(pageable);
+        Set<String> emails = Set.of("one@email.com");
+        given(userRepository.findAllByEmail(emails, pageable))
+                .willReturn(users);
+        assertThat(userService.getAllByEmail(emails, pageable))
+                .containsAll(users)
+                .hasSize(1);
+        verify(userRepository).findAllByEmail(emails, pageable);
     }
 
     @Test

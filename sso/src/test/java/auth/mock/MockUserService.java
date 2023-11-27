@@ -7,6 +7,8 @@ import auth.entities.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Set;
+
 public class MockUserService implements UserService {
 
     @Override
@@ -46,6 +48,16 @@ public class MockUserService implements UserService {
 
     @Override
     public Page<User> getAll(Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public Page<User> getAllById(Set<String> ids, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public Page<User> getAllByEmail(Set<String> emails, Pageable pageable) {
         return null;
     }
 

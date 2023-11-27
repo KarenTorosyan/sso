@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
@@ -29,16 +31,16 @@ public class MongoUserRepositoryTest extends IntegrateTestContainers.Mongo {
                 .isEqualTo(user);
         assertThat(mongoUserRepository.findByEmail(user.getEmail().getAddress()))
                 .contains(user);
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
     void shouldReturnUserWhenUserByIdExists() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.findById(user.getId()))
                 .contains(user);
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
@@ -51,10 +53,10 @@ public class MongoUserRepositoryTest extends IntegrateTestContainers.Mongo {
     @Test
     void shouldReturnUserWhenUserByEmailExists() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.findByEmail(user.getEmail().getAddress()))
                 .contains(user);
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
@@ -67,10 +69,10 @@ public class MongoUserRepositoryTest extends IntegrateTestContainers.Mongo {
     @Test
     void shouldReturnTrueWhenUserByIdExists() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.existsById(user.getId()))
                 .isTrue();
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
@@ -83,10 +85,10 @@ public class MongoUserRepositoryTest extends IntegrateTestContainers.Mongo {
     @Test
     void shouldReturnTrueWhenUserByEmailExists() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.existsByEmail(user.getEmail().getAddress()))
                 .isTrue();
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
@@ -106,30 +108,52 @@ public class MongoUserRepositoryTest extends IntegrateTestContainers.Mongo {
     @Test
     void shouldFindAllAndReturnUsersPage() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.findAll(Pageable.unpaged()))
                 .contains(user)
                 .hasSize(1);
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
+    }
+
+    @Test
+    void shouldFindAllByIdAndReturnPage() {
+        User user = mockUser.mock();
+        User savedUser = mongoUserRepository.save(user);
+        Set<String> ids = Set.of(savedUser.getId());
+        assertThat(mongoUserRepository.findAllById(ids, Pageable.unpaged()))
+                .contains(user)
+                .hasSize(1);
+        mongoUserRepository.deleteById(savedUser.getId());
+    }
+
+    @Test
+    void shouldFindAllByEmailAndReturnPage() {
+        User user = mockUser.mock();
+        User savedUser = mongoUserRepository.save(user);
+        Set<String> emails = Set.of(user.getEmail().getAddress());
+        assertThat(mongoUserRepository.findAllByEmail(emails, Pageable.unpaged()))
+                .contains(user)
+                .hasSize(1);
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
     void shouldSearchAndReturnUsersPage() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.search(user.getName(), Pageable.unpaged()))
                 .contains(user)
                 .hasSize(1);
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
     }
 
     @Test
     void shouldDeleteUserByEmailWhenUserByEmailExists() {
         User user = mockUser.mock();
-        mongoUserRepository.save(user);
+        User savedUser = mongoUserRepository.save(user);
         assertThat(mongoUserRepository.existsByEmail(user.getEmail().getAddress()))
                 .isTrue();
-        mongoUserRepository.deleteById(user.getId());
+        mongoUserRepository.deleteById(savedUser.getId());
         assertThat(mongoUserRepository.existsByEmail(user.getEmail().getAddress()))
                 .isFalse();
     }

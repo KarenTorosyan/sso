@@ -168,7 +168,7 @@ body.light {
     scrollbar-width: none;
 }
 
-::-webkit-scrollbar {
+.window-body::-webkit-scrollbar {
     display: none;
 }
 

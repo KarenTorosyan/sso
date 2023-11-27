@@ -48,7 +48,7 @@ public class SentEmailVerificationControllerTest {
                 .willThrow(Errors.userNotExistsByEmail(user.getEmail().getAddress()));
         mockMvc.perform(MockMvcRequestBuilders.post(Endpoints.EMAIL_VERIFY)
                         .queryParam("email", user.getEmail().getAddress())
-                        .with(MockPrincipal.authorization(InitialAuthorities.ROLE_ADMIN))
+                        .with(MockPrincipal.authorization())
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
         verify(userService).getByEmail(user.getEmail().getAddress());
@@ -63,7 +63,7 @@ public class SentEmailVerificationControllerTest {
                 .willReturn(user);
         mockMvc.perform(MockMvcRequestBuilders.post(Endpoints.EMAIL_VERIFY)
                         .queryParam("email", user.getEmail().getAddress())
-                        .with(MockPrincipal.authorization(InitialAuthorities.ROLE_ADMIN))
+                        .with(MockPrincipal.authorization())
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(MockMvcResultMatchers.status().isConflict());
         verify(userService).getByEmail(user.getEmail().getAddress());
@@ -78,7 +78,7 @@ public class SentEmailVerificationControllerTest {
                 .willReturn(user);
         mockMvc.perform(MockMvcRequestBuilders.post(Endpoints.EMAIL_VERIFY)
                         .queryParam("email", user.getEmail().getAddress())
-                        .with(MockPrincipal.authorization(InitialAuthorities.ROLE_ADMIN))
+                        .with(MockPrincipal.authorization())
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
         verify(userService).getByEmail(user.getEmail().getAddress());

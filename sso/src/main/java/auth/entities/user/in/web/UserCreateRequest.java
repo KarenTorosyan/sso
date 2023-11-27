@@ -31,7 +31,9 @@ public final class UserCreateRequest {
 
     @JsonProperty(value = "password", required = true)
     @NotBlank(message = "{password_required}")
-    @LimitPasswordSize
+    @Size(message = "{password_minmax}",
+            min = LimitPasswordSize.PASSWORD_MIN_LENGTH,
+            max = LimitPasswordSize.PASSWORD_MAX_LENGTH)
     private String password;
 
     @JsonProperty(value = "passwordConfirm", required = true)

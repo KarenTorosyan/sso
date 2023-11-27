@@ -35,9 +35,11 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Set;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -82,7 +84,7 @@ public class UserRestControllerTest {
         given(userService.getAll(pageable))
                 .willReturn(users);
         mockMvc.perform(get(Endpoints.USERS)
-                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
+                        .with(MockPrincipal.anonymous())
                         .param("page", String.valueOf(pageable.getPageNumber()))
                         .param("size", String.valueOf(pageable.getPageSize()))
                         .param("sort", "name,asc")
@@ -102,7 +104,7 @@ public class UserRestControllerTest {
         given(userService.search(search, pageable))
                 .willReturn(users);
         mockMvc.perform(get(Endpoints.USERS)
-                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
+                        .with(MockPrincipal.anonymous())
                         .param("term", search)
                         .param("page", String.valueOf(pageable.getPageNumber()))
                         .param("size", String.valueOf(pageable.getPageSize()))
@@ -115,19 +117,45 @@ public class UserRestControllerTest {
     }
 
     @Test
-    void shouldSendErrorResponseWhenGetAllOrSearchUsersWhenClientNotEnoughPermissions() throws Exception {
+    void shouldGetUsersByIds() throws Exception {
+        Set<String> ids = Set.of("1", "2");
+        Pageable pageable = PageRequest.of(0, 3)
+                .withSort(Sort.by("name").ascending());
+        Page<User> users = mockUser.mockPage(pageable);
+        given(userService.getAllById(ids, pageable))
+                .willReturn(users);
         mockMvc.perform(get(Endpoints.USERS)
-                        .with(MockPrincipal.authorization())
-                        .with(csrf()))
-                .andExpect(status().isForbidden());
+                        .with(MockPrincipal.anonymous())
+                        .param("id", String.join(",", ids))
+                        .param("page", String.valueOf(pageable.getPageNumber()))
+                        .param("size", String.valueOf(pageable.getPageSize()))
+                        .param("sort", "name,asc")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(ObjectMapperUtils.configuredObjectMapper()
+                        .writeValueAsString(users.map(UserProjection::from))));
+        verify(userService).getAllById(ids, pageable);
     }
 
     @Test
-    void shouldSendErrorResponseWhenGetAllOrSearchUsersWhenClientUnauthorized() throws Exception {
+    void shouldGetUsersByEmails() throws Exception {
+        Set<String> emails = Set.of("one@email.com", "two@email.com");
+        Pageable pageable = PageRequest.of(0, 3)
+                .withSort(Sort.by("name").ascending());
+        Page<User> users = mockUser.mockPage(pageable);
+        given(userService.getAllByEmail(emails, pageable))
+                .willReturn(users);
         mockMvc.perform(get(Endpoints.USERS)
                         .with(MockPrincipal.anonymous())
-                        .with(csrf()))
-                .andExpect(status().isUnauthorized());
+                        .param("email", String.join(",", emails))
+                        .param("page", String.valueOf(pageable.getPageNumber()))
+                        .param("size", String.valueOf(pageable.getPageSize()))
+                        .param("sort", "name,asc")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(ObjectMapperUtils.configuredObjectMapper()
+                        .writeValueAsString(users.map(UserProjection::from))));
+        verify(userService).getAllByEmail(emails, pageable);
     }
 
     @Test
@@ -378,7 +406,7 @@ public class UserRestControllerTest {
         given(userService.edit(userEditRequest.getModifiedUser(user)))
                 .willReturn(user);
         mockMvc.perform(put(Endpoints.USERS + "/{id}", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ObjectMapperUtils.configuredObjectMapper()
@@ -396,7 +424,7 @@ public class UserRestControllerTest {
         userEditRequest.setName(user.getName());
         userEditRequest.setFamilyName(user.getFamilyName());
         mockMvc.perform(put(Endpoints.USERS + "/{id}", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ObjectMapperUtils.configuredObjectMapper()
@@ -413,7 +441,7 @@ public class UserRestControllerTest {
         given(userService.getById(user.getId()))
                 .willThrow(Errors.userNotExistsById(user.getId()));
         mockMvc.perform(put(Endpoints.USERS + "/{id}", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ObjectMapperUtils.configuredObjectMapper()
@@ -433,8 +461,10 @@ public class UserRestControllerTest {
     @Test
     void shouldDeleteUserByIdWhenUserByIdExists() throws Exception {
         User user = mockUser.mock();
+        given(userService.getById(user.getId()))
+                .willReturn(user);
         mockMvc.perform(delete(Endpoints.USERS + "/{id}", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf()))
                 .andExpect(status().isNoContent());
         verify(userService).deleteById(user.getId());
@@ -443,10 +473,10 @@ public class UserRestControllerTest {
     @Test
     void shouldSendErrorResponseWhenDeleteUserWhenUserByIdNotExists() throws Exception {
         User user = mockUser.mock();
-        doThrow(Errors.userNotExistsById(user.getId()))
-                .when(userService).deleteById(user.getId());
+        given(userService.getById(user.getId()))
+                .willThrow(Errors.userNotExistsById(user.getId()));
         mockMvc.perform(delete(Endpoints.USERS + "/{id}", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf()))
                 .andExpect(status().isNotFound());
     }
@@ -474,7 +504,7 @@ public class UserRestControllerTest {
                 .willReturn(user);
         mockMvc.perform(multipart(Endpoints.USERS + "/{id}/picture", user.getId())
                         .file(picturePart)
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isNoContent());
@@ -493,7 +523,7 @@ public class UserRestControllerTest {
                 .willThrow(Errors.userNotExistsById(user.getId()));
         mockMvc.perform(multipart(Endpoints.USERS + "/{id}/picture", user.getId())
                         .file(picturePart)
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isNotFound());
@@ -510,7 +540,10 @@ public class UserRestControllerTest {
 
     @Test
     void shouldChangeUserPasswordWhenUserByIdExistsAndPasswordValidAndConfirmed() throws Exception {
-        User user = mockUser.mock();
+        String password = "password";
+        String newPassword = "newPassword";
+        User user = mockUser.mock()
+                .withPassword(new Password(password));
         given(userService.getById(user.getId()))
                 .willReturn(user);
         given(passwordEncoder.matches(user.getPassword().getValue(), user.getPassword().getValue()))
@@ -519,61 +552,76 @@ public class UserRestControllerTest {
                 .willReturn(user.getPassword().getValue());
         given(userService.edit(user))
                 .willReturn(user);
+        PasswordChangeRequest passwordChangeRequest =
+                new PasswordChangeRequest(user.getPassword().getValue(), newPassword, newPassword);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
-                        .param("current", user.getPassword().getValue())
-                        .param("new", user.getPassword().getValue())
-                        .param("confirmNew", user.getPassword().getValue()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(passwordChangeRequest)))
                 .andExpect(status().isNoContent());
         verify(userService).getById(user.getId());
-        verify(passwordEncoder).matches(user.getPassword().getValue(), user.getPassword().getValue());
-        verify(passwordEncoder).encode(user.getPassword().getValue());
+        verify(passwordEncoder).matches(password, password);
+        verify(passwordEncoder).encode(newPassword);
         verify(userService).edit(user);
     }
 
     @Test
     void shouldSendErrorResponseWhenChangeUserPasswordWhenUserByIdNotExists() throws Exception {
+        String newPassword = "newPassword";
         User user = mockUser.mock();
         given(userService.getById(user.getId()))
                 .willThrow(Errors.userNotExistsById(user.getId()));
+        PasswordChangeRequest passwordChangeRequest =
+                new PasswordChangeRequest(user.getPassword().getValue(), newPassword, newPassword);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
-                        .param("current", user.getPassword().getValue())
-                        .param("new", user.getPassword().getValue())
-                        .param("confirmNew", user.getPassword().getValue()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(passwordChangeRequest)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldSendErrorResponseWhenChangeUserPasswordWhenPasswordInvalid() throws Exception {
-        User user = mockUser.mock();
+        String password = "password";
+        String newPassword = "newPassword";
+        User user = mockUser.mock()
+                .withPassword(new Password(password));
         given(userService.getById(user.getId()))
                 .willReturn(user);
+        PasswordChangeRequest passwordChangeRequest =
+                new PasswordChangeRequest(user.getPassword().getValue(),
+                        "password has been limited maximum 20 characters", newPassword);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
-                        .param("current", user.getPassword().getValue())
-                        .param("new", user.getPassword().getValue())
-                        .param("confirmNew", "password has been limited maximum 20 characters"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(passwordChangeRequest)))
                 .andExpect(status().isBadRequest());
-        verify(userService).getById(user.getId());
     }
 
     @Test
     void shouldSendErrorResponseWhenChangeUserPasswordWhenPasswordConfirmed() throws Exception {
-        User user = mockUser.mock();
+        String password = "password";
+        String newPassword = "newPassword";
+        User user = mockUser.mock()
+                .withPassword(new Password(password));
         given(userService.getById(user.getId()))
                 .willReturn(user);
+        PasswordChangeRequest passwordChangeRequest =
+                new PasswordChangeRequest(user.getPassword().getValue(), newPassword,
+                        "notConfirmedPassword");
         mockMvc.perform(put(Endpoints.USERS + "/{id}/password", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(user))
                         .with(csrf())
-                        .param("current", user.getPassword().getValue())
-                        .param("new", user.getPassword().getValue())
-                        .param("confirmNew", user.getPassword() + "a"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(passwordChangeRequest)))
                 .andExpect(status().isBadRequest());
-        verify(userService).getById(user.getId());
     }
 
     @Test
@@ -591,7 +639,7 @@ public class UserRestControllerTest {
         given(userService.getById(user.getId()))
                 .willReturn(user);
         mockMvc.perform(get(Endpoints.USERS + "/{id}/account", user.getId())
-                        .with(MockPrincipal.authorization()))
+                        .with(MockPrincipal.anonymous()))
                 .andExpect(status().isOk())
                 .andExpect(content().json(ObjectMapperUtils.configuredObjectMapper()
                         .writeValueAsString(AccountProjection.from(user.getAccount()))));
@@ -604,16 +652,8 @@ public class UserRestControllerTest {
         given(userService.getById(user.getId()))
                 .willThrow(Errors.userNotExistsById(user.getId()));
         mockMvc.perform(get(Endpoints.USERS + "/{id}/account", user.getId())
-                        .with(MockPrincipal.authorization()))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void shouldSendErrorResponseWhenGetUserAccountSettingsWhenClientUnauthorized() throws Exception {
-        User user = mockUser.mock();
-        mockMvc.perform(get(Endpoints.USERS + "/{id}/account", user.getId())
                         .with(MockPrincipal.anonymous()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -623,13 +663,15 @@ public class UserRestControllerTest {
                 .willReturn(user);
         given(userService.edit(user))
                 .willReturn(user);
+        String instant = Instant.now().toString();
+        AccountAccessChangeRequest accountAccessChangeRequest =
+                new AccountAccessChangeRequest(instant, instant, instant, instant);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/account", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
                         .with(csrf())
-                        .param("lockedIn", String.valueOf(Instant.now()))
-                        .param("disabledIn", String.valueOf(Instant.now()))
-                        .param("expiresIn", String.valueOf(Instant.now()))
-                        .param("credentialsExpiresIn", String.valueOf(Instant.now())))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(accountAccessChangeRequest)))
                 .andExpect(status().isNoContent());
         verify(userService).getById(user.getId());
         verify(userService).edit(user);
@@ -640,23 +682,30 @@ public class UserRestControllerTest {
         User user = mockUser.mock();
         given(userService.getById(user.getId()))
                 .willThrow(Errors.userNotExistsById(user.getId()));
+        String instant = Instant.now().toString();
+        AccountAccessChangeRequest accountAccessChangeRequest =
+                new AccountAccessChangeRequest(instant, instant, instant, instant);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/account", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
                         .with(csrf())
-                        .param("lockedIn", String.valueOf(Instant.now()))
-                        .param("disabledIn", String.valueOf(Instant.now()))
-                        .param("expiresIn", String.valueOf(Instant.now()))
-                        .param("credentialsExpiresIn", String.valueOf(Instant.now())))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(accountAccessChangeRequest)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldSendErrorMessageWhenEditUserAccountSettingsWhenRequestParametersInvalid() throws Exception {
         User user = mockUser.mock();
+        String instant = Instant.now().toString();
+        AccountAccessChangeRequest accountAccessChangeRequest =
+                new AccountAccessChangeRequest("isn't ISO8601 but required", instant, instant, instant);
         mockMvc.perform(put(Endpoints.USERS + "/{id}/account", user.getId())
-                        .with(MockPrincipal.authorization())
+                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
                         .with(csrf())
-                        .param("lockedIn", "isn't ISO8601 but required"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ObjectMapperUtils.configuredObjectMapper()
+                                .writeValueAsString(accountAccessChangeRequest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -677,7 +726,7 @@ public class UserRestControllerTest {
         given(userService.getAuthorities(user.getId(), pageable))
                 .willReturn(userAuthorities);
         mockMvc.perform(get(Endpoints.USERS + "/{id}/authorities", user.getId())
-                        .with(MockPrincipal.authorization(InitialAuthorities.admin()))
+                        .with(MockPrincipal.anonymous())
                         .param("page", String.valueOf(pageable.getPageNumber()))
                         .param("size", String.valueOf(pageable.getPageSize()))
                         .param("sort", "name,desc"))
@@ -686,22 +735,6 @@ public class UserRestControllerTest {
                         .writeValueAsString(userAuthorities.map(userAuthority ->
                                 AuthorityProjection.from(userAuthority.getAuthority())))));
         verify(userService).getAuthorities(user.getId(), pageable);
-    }
-
-    @Test
-    void shouldSendErrorResponseWhenGetUserAuthoritiesPageByIdWhenClientUnauthorized() throws Exception {
-        User user = mockUser.mock();
-        mockMvc.perform(get(Endpoints.USERS + "/{id}/authorities", user.getId())
-                        .with(MockPrincipal.anonymous()))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void shouldSendErrorResponseWhenGetUserAuthoritiesPageByIdWhenClientNotEnoughPrivileges() throws Exception {
-        User user = mockUser.mock();
-        mockMvc.perform(get(Endpoints.USERS + "/{id}/authorities", user.getId())
-                        .with(MockPrincipal.authorization()))
-                .andExpect(status().isForbidden());
     }
 
     @Test

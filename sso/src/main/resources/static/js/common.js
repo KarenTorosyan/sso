@@ -119,18 +119,18 @@ const lightTheme = {
     icon: "light_mode"
 }
 
-const themeCookieName = "theme"
-const themeCookieExpirationDays = 1000
+const themeStorage = localStorage
+const storageThemeKey = "theme"
 
 function resolveTheme() {
-    const themeCookieValue = getCookie(themeCookieName)
+    const theme = getTheme()
 
-    if (themeCookieValue) {
-        // from cookie
-        if (themeCookieValue === darkTheme.class) {
+    if (theme) {
+        // from storage
+        if (theme === darkTheme.class) {
             isDarkTheme = true
             setDarkTheme()
-        } else if (themeCookieValue === lightTheme.class) {
+        } else if (theme === lightTheme.class) {
             isDarkTheme = false
             setLightTheme()
         }
@@ -158,7 +158,7 @@ function setDarkTheme() {
     body.classList.add(darkTheme.class)
     body.classList.remove(lightTheme.class)
     themeIcon.innerText = lightTheme.icon
-    setCookie(themeCookieName, darkTheme.class, themeCookieExpirationDays)
+    saveTheme(darkTheme.class)
 }
 
 function setLightTheme() {
@@ -166,7 +166,15 @@ function setLightTheme() {
     body.classList.add(lightTheme.class)
     body.classList.remove(darkTheme.class)
     themeIcon.innerText = darkTheme.icon
-    setCookie(themeCookieName, lightTheme.class, themeCookieExpirationDays)
+    saveTheme(lightTheme.class)
+}
+
+function saveTheme(value) {
+    themeStorage.setItem(storageThemeKey, JSON.stringify(value))
+}
+
+function getTheme() {
+    return JSON.parse(themeStorage.getItem(storageThemeKey))
 }
 
 // PASSWORD VISIBILITY SWITCHER
